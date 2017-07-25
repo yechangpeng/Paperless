@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\GHook">
+      <UniqueIdentifier>{3e4549fd-c38c-44a6-a8dc-d604aed32010}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Centerm">
+      <UniqueIdentifier>{27eb4651-99d7-4299-b76f-2b6487dbeb83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Curl">
+      <UniqueIdentifier>{bad086d1-6dae-479a-9c57-63fec4ed0041}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Json">
+      <UniqueIdentifier>{3e2751f9-46d7-41ea-9162-11ee4bb948fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Json">
+      <UniqueIdentifier>{8c76cfc7-f2e9-47e4-aa5b-3a1f57f04ec7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Network">
+      <UniqueIdentifier>{21d425ec-76ac-4e1e-9deb-c787a3c11a32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Network">
+      <UniqueIdentifier>{3054f993-16af-41ef-832f-1000ecd31c46}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="res\XXbgService.rc2">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\XXbgServiceDoc.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\XXbgService.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\cursor1.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\arrow_m.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\cursor2.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\size2_r.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\size1_r.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\move_r.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\size3_r.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\size4_r.cur">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\back.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\bitmap2.bmp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="Curl\curlbuild.h.cmake">
+      <Filter>头文件\Curl</Filter>
+    </None>
+    <None Include="Curl\curlbuild.h.in">
+      <Filter>头文件\Curl</Filter>
+    </None>
+    <None Include="Curl\Makefile.am">
+      <Filter>头文件\Curl</Filter>
+    </None>
+    <None Include="Curl\Makefile.in">
+      <Filter>头文件\Curl</Filter>
+    </None>
+    <None Include="Json\json_internalarray.inl">
+      <Filter>头文件\Json</Filter>
+    </None>
+    <None Include="Json\json_internalmap.inl">
+      <Filter>头文件\Json</Filter>
+    </None>
+    <None Include="Json\json_valueiterator.inl">
+      <Filter>头文件\Json</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="XXbgService.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XXbgServiceDoc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XXbgServiceView.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenshotDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyTracker.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyEdit.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CBase64.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Heads\json\autolink.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CentermIFImp.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CBaseReadIDCard.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CCentOneReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CCentOneCamera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CCentReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ManualInputDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyTTrace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GHook\GHook.h">
+      <Filter>头文件\GHook</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\CENT_IDCard.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\CTCamera.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\GlobalDef.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\HighCameraIF.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\IDCardDef.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Centerm\PrjDef.h">
+      <Filter>头文件\Centerm</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\curl.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\curlbuild.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\curlrules.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\curlver.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\easy.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\mprintf.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\multi.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\stdcheaders.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Curl\typecheck-gcc.h">
+      <Filter>头文件\Curl</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\autolink.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\config.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\features.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\forwards.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\json.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\json_batchallocator.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\reader.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\value.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\writer.h">
+      <Filter>头文件\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\HttpComm.h">
+      <Filter>头文件\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\iocp.h">
+      <Filter>头文件\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\PrintMsgDef.h">
+      <Filter>头文件\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\singlelist.h">
+      <Filter>头文件\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\SocketComm.h">
+      <Filter>头文件\Network</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="XXbgService.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XXbgServiceDoc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XXbgServiceView.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenshotDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyTracker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyEdit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CBase64.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CentermIFImp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CBaseReadIDCard.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CCentOneReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CCentOneCamera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CCentReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ManualInputDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyTTrace.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Json\json_reader.cpp">
+      <Filter>源文件\Json</Filter>
+    </ClCompile>
+    <ClCompile Include="Json\json_value.cpp">
+      <Filter>源文件\Json</Filter>
+    </ClCompile>
+    <ClCompile Include="Json\json_writer.cpp">
+      <Filter>源文件\Json</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\HttpComm.cpp">
+      <Filter>源文件\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\iocp.c">
+      <Filter>源文件\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\SocketComm.cpp">
+      <Filter>源文件\Network</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="XXbgService.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
