@@ -20,13 +20,13 @@ CPaperlessRestartDlg::CPaperlessRestartDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	// 配置文件读取配置
-	CString strSettingDir = GetAppPath()+"\\Setting.ini";
+	CString strSettingDir = GetAppPath()+"\\win.ini";
 	// 获取等待启动时间
 	char sWaitTime[32] = {0};
 	memset(sAppDir, 0, sizeof(sAppDir));
 	sprintf_s(sAppDir, sizeof(sAppDir)-1, "%s\\XXbgService.exe", GetAppPath().GetBuffer());
 	//GetPrivateProfileString("Setting", "AppDir", "./Paperless.exe", sAppDir, sizeof(sAppDir)-1, strSettingDir);
-	GetPrivateProfileString("Setting", "WaitTime", "3", sWaitTime, sizeof(sWaitTime)-1, strSettingDir);
+	GetPrivateProfileString("Information", "WaitTime", "3", sWaitTime, sizeof(sWaitTime)-1, strSettingDir);
 	nTime = atoi(sWaitTime);
 }
 
