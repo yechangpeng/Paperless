@@ -1,0 +1,16 @@
+ipch
+*.sdf
+Debug
+Release
+/XXbgService/Heads
+/XXbgService/iocp.lib
+/XXbgService/.DS_Store
+/XXbgService/GHook.exp
+/XXbgService/GHook.lib
+/XXbgService/GHook.pdb
+/XXbgService/Lib/GHook.dll
+/XXbgService/Lib/GHook.exp
+/XXbgService/Lib/GHook.ilk
+/XXbgService/Lib/GHook.lib
+/XXbgService/Lib/GHook.pdb
+/全局钩子/GHook/GHook/ReadMe.txt
