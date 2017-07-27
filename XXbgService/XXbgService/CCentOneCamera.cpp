@@ -5,9 +5,11 @@
 
 CCentOneCamera::CCentOneCamera()
 {
+	GtWriteTrace(EM_TraceDebug, "%s:%d: CCentOneCamera 构造函数!", __FUNCTION__, __LINE__);
 	pVideoWnd = NULL;
 	mHighCamera = NULL;
 	pVideoWnd = new CStatic();
+	//mHighCamera = new CCentermIFImp(pVideoWnd);
 }
 
 
@@ -26,7 +28,7 @@ CCentOneCamera::~CCentOneCamera()
 }
 
 
-// 重写，文拍摄像头获取身份证照片
+// 重写，文拍摄像头获取人像照片
 int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 {
 	GtWriteTrace(30, "%s:%d: 进入文拍摄像头获取身份证照片函数!", __FUNCTION__, __LINE__);
@@ -71,7 +73,7 @@ int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	GtWriteTrace(30, "%s:%d: 参数: sDeskScanNo=[%s], sDeskScanSize=[%s], sIDPicWidth=[%s], sIDPicHigh=[%s], sAutoCropWaitTime=[%s]",
 		__FUNCTION__, __LINE__, sDeskScanNo, sDeskScanSize, sIDPicWidth, sIDPicHigh, sAutoCropWaitTime);
 
-	// 创建具体调用摄像头实例类
+	// 创建具体调用摄像头实例对象
 	if (pVideoWnd == NULL)
 	{
 		pVideoWnd = new CStatic();
@@ -86,17 +88,21 @@ int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	if (nRet <= 0)
 	{
 		GtWriteTrace(30, "%s:%d: 检查摄像头个数 DetectDevice() nRet = %d", __FUNCTION__, __LINE__, nRet);
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 104;
 	}
+	// 设置自动裁边
+// 	nRet = mHighCamera->SetAutoCrop(true, atoi(sDeskScanNo));
+// 	if (nRet != 0)
+// 	{
+// 		GtWriteTrace(30, "%s:%d: 设置自动裁边 SetAutoCrop() nRet = %d", __FUNCTION__, __LINE__, nRet);
+// 		mHighCamera->CloseDevice();
+// 		return 107;
+// 	}
 	// 打开摄像头
 	nRet = mHighCamera->OpenDevice(atoi(sDeskScanNo));
 	if (nRet != 0)
 	{
 		GtWriteTrace(30, "%s:%d: 打开摄像头 OpenDevice() nRet = %d", __FUNCTION__, __LINE__, nRet);
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 105;
 	}
 	// 设置分辨率
@@ -105,19 +111,7 @@ int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	{
 		GtWriteTrace(30, "%s:%d: 设置分辨率 SetScanSize() nRet = %d", __FUNCTION__, __LINE__, nRet);
 		mHighCamera->CloseDevice();
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 106;
-	}
-	// 设置自动裁边
-	nRet = mHighCamera->SetAutoCrop(true, atoi(sDeskScanNo));
-	if (nRet != 0)
-	{
-		GtWriteTrace(30, "%s:%d: 设置自动裁边 SetAutoCrop() nRet = %d", __FUNCTION__, __LINE__, nRet);
-		mHighCamera->CloseDevice();
-		delete mHighCamera;
-		mHighCamera = NULL;
-		return 107;
 	}
 	Sleep(atoi(sAutoCropWaitTime));
 	// 调高拍仪接口保存图片
@@ -127,15 +121,11 @@ int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	{
 		GtWriteTrace(30, "%s:%d: 调高拍仪接口保存图片 ScanImage() nRet = %d", __FUNCTION__, __LINE__, nRet);
 		mHighCamera->CloseDevice();
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 108;
 	}
 	// 关闭设备
 	nRet = mHighCamera->CloseDevice();
 	GtWriteTrace(30, "%s:%d: 关闭设备返回值 CloseDevice() nRet = [%d]", __FUNCTION__, __LINE__, nRet);
-	delete mHighCamera;
-	mHighCamera = NULL;
 
 	// 修改身份证的分辨率，大->小
 	width = atoi(sIDPicWidth);
@@ -173,7 +163,7 @@ int CCentOneCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 // 重写，环境摄像头获取身份证照片
 int CCentOneCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 {
-	GtWriteTrace(30, "%s:%d: 进入环境摄像头获取身份证照片函数!", __FUNCTION__, __LINE__);
+	GtWriteTrace(30, "%s:%d: 进入环境摄像头获取人像照片函数!", __FUNCTION__, __LINE__);
 	int nRet = 0;
 	char sEnvScanNo[32] = {0};
 	char sEnvScanSize[32] = {0};
@@ -208,8 +198,6 @@ int CCentOneCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 	if (nRet != 0)
 	{
 		GtWriteTrace(30, "%s:%d: 打开摄像头 OpenDevice() nRet = %d", __FUNCTION__, __LINE__, nRet);
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 105;
 	}
 	// 设置分辨率
@@ -218,8 +206,6 @@ int CCentOneCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 	{
 		GtWriteTrace(30, "%s:%d: 设置分辨率 SetScanSize() nRet = %d", __FUNCTION__, __LINE__, nRet);
 		mHighCamera->CloseDevice();
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 106;
 	}
 	// 调高拍仪接口保存图片
@@ -229,15 +215,11 @@ int CCentOneCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 	{
 		GtWriteTrace(30, "%s:%d: 调高拍仪接口保存图片 ScanImage() nRet = %d", __FUNCTION__, __LINE__, nRet);
 		mHighCamera->CloseDevice();
-		delete mHighCamera;
-		mHighCamera = NULL;
 		return 108;
 	}
 	// 关闭设备
 	nRet = mHighCamera->CloseDevice();
 	GtWriteTrace(30, "%s:%d: 关闭设备返回值 CloseDevice() nRet = [%d]", __FUNCTION__, __LINE__, nRet);
-	delete mHighCamera;
-	mHighCamera = NULL;
 
 	return 0;
 }

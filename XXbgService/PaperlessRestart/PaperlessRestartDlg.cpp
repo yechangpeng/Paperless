@@ -24,7 +24,8 @@ CPaperlessRestartDlg::CPaperlessRestartDlg(CWnd* pParent /*=NULL*/)
 	// 获取等待启动时间
 	char sWaitTime[32] = {0};
 	memset(sAppDir, 0, sizeof(sAppDir));
-	GetPrivateProfileString("Setting", "AppDir", "./Paperless.exe", sAppDir, sizeof(sAppDir)-1, strSettingDir);
+	sprintf_s(sAppDir, sizeof(sAppDir)-1, "%s\\XXbgService.exe", GetAppPath().GetBuffer());
+	//GetPrivateProfileString("Setting", "AppDir", "./Paperless.exe", sAppDir, sizeof(sAppDir)-1, strSettingDir);
 	GetPrivateProfileString("Setting", "WaitTime", "3", sWaitTime, sizeof(sWaitTime)-1, strSettingDir);
 	nTime = atoi(sWaitTime);
 }

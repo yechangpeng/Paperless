@@ -9,7 +9,7 @@
 #define IOCP_DLL_EXPORT /*__declspec(dllimport)*/ __stdcall
 #endif
 
-#define MAX_IOCP_BUF_LEN       (100*1024)
+#define MAX_IOCP_BUF_LEN       (32*1024)
 
 typedef void (__stdcall *PFN_IO_EVENT)(LPVOID, HANDLE, PCHAR, DWORD);
 

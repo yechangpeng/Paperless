@@ -34,6 +34,12 @@
     <Filter Include="源文件\Network">
       <UniqueIdentifier>{3054f993-16af-41ef-832f-1000ecd31c46}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\opencv">
+      <UniqueIdentifier>{f11a14dd-60b5-40cd-b3fe-90bed8b7f528}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\opencv">
+      <UniqueIdentifier>{e8fa057d-e36b-4743-8306-b1de1acfbe1f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -252,6 +258,12 @@
     <ClInclude Include="Network\SocketComm.h">
       <Filter>头文件\Network</Filter>
     </ClInclude>
+    <ClInclude Include="CGeitCamera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="opencv\OpencvUtils.h">
+      <Filter>头文件\opencv</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="XXbgService.cpp">
@@ -325,6 +337,12 @@
     </ClCompile>
     <ClCompile Include="Network\SocketComm.cpp">
       <Filter>源文件\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="CGeitCamera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="opencv\OpencvUtils.cpp">
+      <Filter>源文件\opencv</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

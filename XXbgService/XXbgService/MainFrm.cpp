@@ -14,6 +14,7 @@
 #include "CCentOneReader.h"
 #include "CCentOneCamera.h"
 #include "CCentReader.h"
+#include "CGeitCamera.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -202,6 +203,8 @@ void CMainFrame::InitDevice()
 	GtWriteTrace(30, "%s:%d: 设备配置参数，ReadIDDevice=[%s], sDeskCameraDevice=[%s]!", __FUNCTION__
 		, __LINE__, sReadIDDevice, sDeskCameraDevice);
 	// 判断 身份证识读仪设备类型，加载对应类
+
+	CStatic *pStatic = new CStatic();
 	switch (atoi(sReadIDDevice))
 	{
 	case -1:
@@ -225,6 +228,9 @@ void CMainFrame::InitDevice()
 		break;
 	case 1:
 		pBaseSaveDeskPic = new CCentOneCamera();
+		break;
+	case 2:
+		pBaseSaveDeskPic = new CGeitCamera();
 		break;
 	default:
 		::MessageBox(NULL, "配置的高拍仪摄像头设备不存在！请检查！", "警告", MB_OK);
@@ -516,74 +522,63 @@ void getIDPicJson(Json::Value &jsonBuff, int flag, CString strDir, int nRet)
 }
 
 // 返回json数据报文
-// flag: 0-身份证信息，1-身份证正面，2-身份证反面，3-环境人像
-void SendJsonMsg(Json::Value &jsonBuff, PIO_OP_KEY pOpKey, int flag)
+void SendJsonMsg(Json::Value &jsonBuff, PIO_OP_KEY pOpKey)
 {
-	string msgStr_rtn = jsonBuff.toStyledString();
 	sockaddr_in addr;
 	addr.sin_addr.s_addr = pOpKey->remote_addr;
-#if 0
+
+	// json数据转成string格式
+	string msgStr_rtn_gbk = jsonBuff.toStyledString();
+
 	// 转码 GBKToUtf8
-	CString reStr = msgStr_rtn.c_str();
-	ConvertGBKToUtf8(reStr);
-	GtWriteTrace(EM_TraceDebug, "[MainFrm]Will send msg len = [%d], buff = [%s]", reStr.GetLength(), reStr.GetBuffer());
-	reStr.ReleaseBuffer();
-	int resCount = WriteDataEx(g_hIoRes, pOpKey, NULL, 0, reStr.GetBuffer(), reStr.GetLength());
-	GtWriteTrace(EM_TraceDebug, "[MainFrm]WriteDataEx() return = [%d]", resCount);
-#endif
-	if (flag != 3)
+	GtWriteTrace(EM_TraceDebug, "%s:%d: 转码前长度(GBK)=[%d]!", __FUNCTION__, __LINE__, msgStr_rtn_gbk.length());
+	//GtWriteTrace(EM_TraceDebug, "%s:%d: 转码前数据(GBK)=[%s]!", __FUNCTION__, __LINE__, msgStr_rtn_gbk.c_str());
+	string msgStr_rtn = MyGBKToUtf8(msgStr_rtn_gbk);
+	//string msgStr_rtn = msgStr_rtn_gbk;
+	GtWriteTrace(EM_TraceDebug, "%s:%d: 转码后长度(UTF-8)=[%d]!", __FUNCTION__, __LINE__, msgStr_rtn.length());
+
+	// 发送报文，完整报文=10字节报文长度+报文体；因网络库限制，故长报文需要循环调用发送函数
+	// 报文头长度，10字节
+	char sPreBuff[10+1] = {0};
+	// 报文总字节长度
+	long countLen = msgStr_rtn.length();
+
+	// 单次发送最大报文字节长度，64 * 1024 socket网络库(iocp.h)中最大为64 * 1024字节
+	const int SEND_MAX_LEN = 32 * 1024;
+	// 需要发送的次数
+	int count = (countLen - 1) / SEND_MAX_LEN + 1;
+	// 本次发送的字节数
+	int sendLen = 0;
+	// 待发送的报文指针
+	char *sendBuff = (char *)msgStr_rtn.c_str();
+	// 发送函数返回值
+	int resCount = 0;
+
+	sprintf(sPreBuff, "%010ld", countLen);
+	// 发送报文头
+	GtWriteTrace(EM_TraceDebug, "%s:%d: 发送报文头=[%s]!", __FUNCTION__, __LINE__, sPreBuff);
+	WriteDataEx(g_hIoRes, pOpKey, NULL, 0, sPreBuff, sizeof(sPreBuff)-1);
+	GtWriteTrace(EM_TraceDebug, "%s:%d: 待发送报文长度=[%d], 分%d次发送!", __FUNCTION__, __LINE__, countLen, count);
+
+	// 循环发送报文，每次发送SEND_MAX_LEN字节
+	for (int i = 0; i < count; i++)
 	{
-		// 少量数据单次发送
-		// 单次发送全部报文，测试了发送45 * 1024成功，发送46*1024失败
-		GtWriteTrace(EM_TraceDebug, "[MainFrm]Will send msg len = [%d], buff = [%s]", msgStr_rtn.length(), msgStr_rtn.c_str());
-		int resCount = WriteDataEx(g_hIoRes, pOpKey, NULL, 0, (char*)msgStr_rtn.c_str(), msgStr_rtn.length());
-		GtWriteTrace(EM_TraceDebug, "[MainFrm]WriteDataEx() send buffer len [%d], return = [%d]", msgStr_rtn.length(), resCount);
-	}
-	else
-	{
-		// 报文头长度，10字节
-		char sPreBuff[10+1] = {0};
-		// 报文总字节长度
-		long countLen = msgStr_rtn.length();
-		// 单次发送最大报文字节长度，6 * 1024 socket网络库中最大为6 * 1024字节
-		const int SEND_MAX_LEN = 100 * 1024;
-		// 需要发送的次数
-		int count = (countLen - 1) / SEND_MAX_LEN + 1;
-		// 本次发送的字节数
-		int sendLen = 0;
-		// 待发送的报文指针
-		char *sendBuff = (char *)msgStr_rtn.c_str();
-		// 发送函数返回值
-		int resCount = 0;
-		sprintf(sPreBuff, "%010ld", countLen);
-		GtWriteTrace(EM_TraceDebug, "[MainFrm]发送报文长度 = [%s]", sPreBuff);
-		WriteDataEx(g_hIoRes, pOpKey, NULL, 0, sPreBuff, sizeof(sPreBuff)-1);
-		GtWriteTrace(EM_TraceDebug, "[MainFrm]Will send msg len = [%d]", countLen);
-		//GtWriteTrace(EM_TraceDebug, "[MainFrm]Will send msg = [%s]", msgStr_rtn.c_str());
-		// 循环发送报文，每次发送SEND_MAX_LEN字节
-		for (int i = 0; i < count; i++)
+		// 获取本次发送字节数，最后一次发送 countLen % SEND_MAX_LEN 字节
+		sendLen = (i == count - 1) ? countLen % SEND_MAX_LEN : SEND_MAX_LEN;
+		resCount = WriteDataEx(g_hIoRes, pOpKey, NULL, 0, sendBuff + i * SEND_MAX_LEN, sendLen);
+		if (resCount < 0)
 		{
-			// 获取本次发送字节数，最后一次发送 countLen % SEND_MAX_LEN 字节
-			sendLen = (i == count - 1) ? countLen % SEND_MAX_LEN : SEND_MAX_LEN;
-			resCount = WriteDataEx(g_hIoRes, pOpKey, NULL, 0, sendBuff + i * SEND_MAX_LEN, sendLen);
-			char tmp[100 *1024+1] = {0};
-			memcpy(tmp, sendBuff + i * SEND_MAX_LEN, sendLen);
-			GtWriteTrace(EM_TraceDebug, "[MainFrm]Write [%s]", tmp);
-			GtWriteTrace(EM_TraceDebug, "[MainFrm]WriteDataEx() already send [%d * %d], will send buffer len [%d], return = [%d]",
-				i, SEND_MAX_LEN, sendLen, resCount);
-			if (resCount < 0)
-			{
-				GtWriteTrace(EM_TraceDebug, "[MainFrm]WriteDataEx() send buffer error! will break;");
-				break;
-			}
-			if (resCount == 0)
-			{
-				Sleep(10);
-			}
-			if (i == count - 1)
-			{
-				GtWriteTrace(EM_TraceDebug, "[MainFrm]WriteDataEx() send buffer done");
-			}
+			GtWriteTrace(EM_TraceDebug, "%s:%d: 第%d次发送报文失败，函数WriteDataEx()返回值[%d] < 0，停止发送报文！", __FUNCTION__, __LINE__, i + 1, resCount);
+			break;
+		}
+		if (resCount == 0)
+		{
+			Sleep(10);
+		}
+		GtWriteTrace(EM_TraceDebug, "%s:%d: 第%d次发送报文完成，本次发送[%d]字节!", __FUNCTION__, __LINE__, i + 1, sendLen);
+		if (i == count - 1)
+		{
+			GtWriteTrace(EM_TraceDebug, "%s:%d: 报文全部发送完成，共[%d]字节!", __FUNCTION__, __LINE__, countLen);
 		}
 	}
 	return ;
@@ -1025,8 +1020,14 @@ int SendToWindows()
 		int strlen = strTmp.GetLength();
 		CString tmp;
 		tmp.Format("wname.GetBuffer()=[%s], sendMsg=[%s]", wname.GetBuffer(), sendMsg.GetBuffer());
-		::MessageBoxA(NULL, tmp, "test", MB_OK);
+		//::MessageBoxA(NULL, tmp, "test", MB_OK);
 		//获取窗口句柄
+		if(wname.GetBuffer() == "")
+		{
+			::MessageBox(NULL,"目标窗口未配置","提示",MB_OK);
+			return -1;
+		}
+
 		hWnd = ::FindWindow(NULL,wname.GetBuffer());
 		if(NULL==hWnd){
 			::MessageBox(NULL,"没有找到窗口","提示",MB_OK);
@@ -1237,11 +1238,29 @@ void __stdcall ReadEvt(
 			CString str = GetAppPath();
 			str.Append("\\IDPicture\\HeadPictureTmp.jpg");
 			nRet = ((CMainFrame*)(AfxGetApp()->m_pMainWnd))->pBaseReadIDCardInfo->MyReadIDCardInfo(str.GetBuffer(), &pMyPerson);
-			//nRet = CMyReadIDCardInfo::MyReadIDCardInfo(str, &pPerson);
+// 			nRet = 0;
+// 			memcpy(pMyPerson.address, "福建省大田县上京镇三阳村13-1号", sizeof(pMyPerson.address));
+// 			memcpy(pMyPerson.appendMsg, "", sizeof(pMyPerson.appendMsg));
+// 			memcpy(pMyPerson.birthday, "19941022", sizeof(pMyPerson.birthday));
+// 			memcpy(pMyPerson.cardId, "350425199410220517", sizeof(pMyPerson.cardId));
+// 			memcpy(pMyPerson.cardType, "", sizeof(pMyPerson.cardType));
+// 			memcpy(pMyPerson.EngName, "", sizeof(pMyPerson.EngName));
+// 			memcpy(pMyPerson.govCode, "", sizeof(pMyPerson.govCode));
+// 			pMyPerson.iFlag = 0;
+// 			memcpy(pMyPerson.name, "叶长鹏", sizeof(pMyPerson.name));
+// 			memcpy(pMyPerson.nation, "汉", sizeof(pMyPerson.nation));
+// 			memcpy(pMyPerson.nationCode, "", sizeof(pMyPerson.nationCode));
+// 			memcpy(pMyPerson.otherData, "", sizeof(pMyPerson.otherData));
+// 			memcpy(pMyPerson.police, "大田县公安局", sizeof(pMyPerson.police));
+// 			memcpy(pMyPerson.sex, "男", sizeof(pMyPerson.sex));
+// 			memcpy(pMyPerson.sexCode, "", sizeof(pMyPerson.sexCode));
+// 			memcpy(pMyPerson.validEnd, "20201221", sizeof(pMyPerson.validEnd));
+// 			memcpy(pMyPerson.validStart, "20101221", sizeof(pMyPerson.validStart));
+// 			memcpy(pMyPerson.version, "", sizeof(pMyPerson.version));
 			// 通过个人信息头像路径和返回值拼json报文
 			getIDCardInfoJson(msgStr_json_rtn, str, &pMyPerson, nRet);
 			// 将json报文发送
-			SendJsonMsg(msgStr_json_rtn, pOpKey, 0);
+			SendJsonMsg(msgStr_json_rtn, pOpKey);
 		}
 		else if (0 == tran_type.compare("2"))
 		{
@@ -1250,11 +1269,12 @@ void __stdcall ReadEvt(
 			CString str = GetAppPath();
 			str.Append("\\IDPicture\\FrontPictureTmp.jpg");
 			nRet = ((CMainFrame*)(AfxGetApp()->m_pMainWnd))->pBaseSaveDeskPic->MySaveDeskIDPic(str.GetBuffer());
+			//nRet = 0;
 			GtWriteTrace(EM_TraceDebug, "[MainFrm]Save file [%s] return = [%d]", str.GetBuffer(), nRet);
 			// 通过身份证正面信息返回值拼json报文
 			getIDPicJson(msgStr_json_rtn, 0, str, nRet);
 			// 将json报文发送
-			SendJsonMsg(msgStr_json_rtn, pOpKey, 1);
+			SendJsonMsg(msgStr_json_rtn, pOpKey);
 		}
 		else if (0 == tran_type.compare("3"))
 		{
@@ -1263,11 +1283,12 @@ void __stdcall ReadEvt(
 			CString str = GetAppPath();
 			str.Append("\\IDPicture\\BackPictureTmp.jpg");
 			nRet = ((CMainFrame*)(AfxGetApp()->m_pMainWnd))->pBaseSaveDeskPic->MySaveDeskIDPic(str.GetBuffer());
+			//nRet = 0;
 			GtWriteTrace(EM_TraceDebug, "[MainFrm]Save file [%s] return = [%d]", str.GetBuffer(), nRet);
 			// 通过身份证反面信息返回值拼json报文
 			getIDPicJson(msgStr_json_rtn, 1, str, nRet);
 			// 将json报文发送
-			SendJsonMsg(msgStr_json_rtn, pOpKey, 2);
+			SendJsonMsg(msgStr_json_rtn, pOpKey);
 		}
 		else if (0 == tran_type.compare("4"))
 		{
@@ -1281,7 +1302,7 @@ void __stdcall ReadEvt(
 			// 通过 环境摄像头信息返回值拼json报文
 			getIDPicJson(msgStr_json_rtn, 2, str, nRet);
 			// 将json报文发送
-			SendJsonMsg(msgStr_json_rtn, pOpKey, 3);
+			SendJsonMsg(msgStr_json_rtn, pOpKey);
 		}
 		else
 		{
@@ -1871,6 +1892,7 @@ LRESULT CMainFrame::OnScreenDlgMessage(WPARAM wParam, LPARAM iParam)
 LRESULT CMainFrame::OnContinueInput(WPARAM wParam, LPARAM iParam)
 {
 	SendToWindows();
+	//MessageBox("tsadfd");
 	return 0;
 }
 
