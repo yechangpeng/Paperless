@@ -26,6 +26,10 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 	// 过滤提取的轮廓，小于此面积区域不处理
 	double lMinArea = 1000.0;
 
+// 	cvNamedWindow("灰度图二值化后的图像", 1);
+// 	cvNamedWindow("裁剪后的图像", 1);
+// 	cvNamedWindow("旋转后的图像", 1);
+// 	cvNamedWindow("保存后的图像", 1);
 
 	// 原图转换为灰度图像
 	pImgGray = cvCreateImage(cvGetSize(pImgSrc), 8, 1);
@@ -36,10 +40,9 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 	cvThreshold(pImgGray, pImgGray, 130, 255, CV_THRESH_BINARY);
 
 	// 显示二值化后的原图像
-// 	cvNamedWindow("灰度图二值化后的图像", 1);
 // 	cvShowImage("灰度图二值化后的图像", pImgGray);
 // 	cvWaitKey(0);
-// 	cvDestroyWindow("灰度图二值化后的图像");
+
 
 	// 灰度图进行二值化后，提取轮廓
 	int contour_num = cvFindContours(pImgGray, storage, &contour, sizeof(CvContour), CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
@@ -70,7 +73,7 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 			// 最大面积的轮廓
 			// 获取正常外接矩形
 			CvRect rect = cvBoundingRect(contourTmp,1);
-			CvRect rectTmp = cvRect(rect.x-2, rect.y-2, rect.width+4, rect.height+4);
+			CvRect rectTmp = cvRect(rect.x, rect.y, rect.width, rect.height);
 			// 创建第一裁剪的图像
 			IplImage* pDestCut = cvCreateImage(cvSize(rectTmp.width, rectTmp.height), pImgSrc->depth, pImgSrc->nChannels);
 			// 设置源图像ROI，第一次裁剪正常外接矩形，之后再旋转最小外接矩形
@@ -78,11 +81,9 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 			//复制图像
 			cvCopy(pImgSrc, pDestCut, NULL); 
 			//源图像用完后，清空ROI
-// 			cvResetImageROI(pImgSrc);
-// 			cvNamedWindow("裁剪后的图像", 1);
+ 			cvResetImageROI(pImgSrc);
 // 			cvShowImage("裁剪后的图像", pDestCut);
 // 			cvWaitKey(0);
-// 			cvDestroyWindow("裁剪后的图像");
 
 			// 旋转后的图像
 			IplImage* pDestRemote = NULL;
@@ -132,31 +133,32 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 			{
 				cvReleaseImage(&pDestCut);
 			}
-// 			cvNamedWindow("旋转后的图像", 1);
 // 			cvShowImage("旋转后的图像", pDestRemote);
 // 			cvWaitKey(0);
-// 			cvDestroyWindow("旋转后的图像");
 			// 最小外接矩形的真正宽、高（宽 > 高）
 			float saveWidth = box2D.size.width > box2D.size.height ? box2D.size.width : box2D.size.height;
 			float saveHeight = box2D.size.width < box2D.size.height ? box2D.size.width : box2D.size.height;
 			// 创建第二次裁剪的图像
-			*pImgDest = cvCreateImage(cvSize(saveWidth+2, saveHeight+2), pDestRemote->depth, pDestRemote->nChannels);
+			*pImgDest = cvCreateImage(cvSize(saveWidth, saveHeight), pDestRemote->depth, pDestRemote->nChannels);
 			// 裁剪图像的大小，各边多1像素
-			CvRect mSaveRect = cvRect( (pDestRemote->width - saveWidth) / 2 + 1, (pDestRemote->height - saveHeight) / 2 + 1,
-				saveWidth + 2, saveHeight + 2);
+			CvRect mSaveRect = cvRect( (pDestRemote->width - saveWidth) / 2, (pDestRemote->height - saveHeight) / 2,
+				saveWidth, saveHeight);
 			// 设置旋转后图像的roi
 			cvSetImageROI(pDestRemote, mSaveRect);
 			// 拷贝到目标图像中
 			cvCopy(pDestRemote, *pImgDest, NULL);
 			// 释放roi
-// 			cvReleaseImage(&pDestRemote);
-// 			cvNamedWindow("保存后的图像", 1);
+			cvReleaseImage(&pDestRemote);
 // 			cvShowImage("保存后的图像", *pImgDest);
 // 			cvWaitKey(0);
-// 			cvDestroyWindow("保存后的图像");
 		}
 	}
 
+	//cvWaitKey(0);
+// 	cvDestroyWindow("灰度图二值化后的图像");
+// 	cvDestroyWindow("裁剪后的图像");
+// 	cvDestroyWindow("旋转后的图像");
+// 	cvDestroyWindow("保存后的图像");
 	cvReleaseImage(&pImgGray);
 	//释放内存
 	cvReleaseMemStorage(&storage);

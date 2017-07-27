@@ -112,6 +112,10 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 
 	// 框选图形内的身份证，并存到图像pDest中
 	nRet = MyAutoCrop(pImgSrc, &pDest);
+	char pSaveDesktopIDPicFilenm_1[256] = {0};
+	sprintf_s(pSaveDesktopIDPicFilenm_1, sizeof(pSaveDesktopIDPicFilenm_1)-1, "%s\\IDPicture\\pic.jpg", GetAppPath().GetBuffer());
+	cvSaveImage(pSaveDesktopIDPicFilenm_1, pImgSrc);
+	//nRet = 1;
 	if (nRet == 0 && pDest != NULL)
 	{
 		cvSaveImage(pSaveDesktopIDPicFilenm, pDest);
@@ -124,7 +128,7 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 		cvSaveImage(pSaveDesktopIDPicFilenm, pImgSrc);
 	}
 
-
+	GtWriteTrace(30, "%s:%d: 源图像获取完成，准备转换成小分辨率图片...", __FUNCTION__, __LINE__);
 	// 修改身份证的分辨率，大->小
 	width = atoi(sIDPicWidth);
 	high = atoi(sIDPicHigh);
@@ -155,6 +159,7 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 		GtWriteTrace(30, "%s:%d: 分辨率转换时保存目标图片失败 Save()", __FUNCTION__, __LINE__);
 		return 112;
 	}
+	GtWriteTrace(30, "%s:%d: 转换小分辨率图片完成.", __FUNCTION__, __LINE__);
 	return 0;
 }
 
@@ -189,8 +194,8 @@ int CGeitCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 		return 105;
 	}
 	// 设置摄像头分辨率
-	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_WIDTH , 1280);
-	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_HEIGHT, 960);
+	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_WIDTH , 1600);
+	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_HEIGHT, 1200);
 
 	// 等待时间
 	Sleep(atoi(sAutoCropWaitTime));
