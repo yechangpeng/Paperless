@@ -27,6 +27,12 @@ void ConvertGBKToUtf8(CString &strGBK);
 // UTF-8转GBK
 void ConvertUtf8ToGBK(CString &strUtf8);
 
+// GBK转UTF-8  2
+string MyGBKToUtf8(const string& strGBK);
+
+// UTF-8转GBK  2
+string MyUtf8ToGBK(const string& strUTF8);
+
 /* 获取当前程序执行路径
 */
 CString GetAppPath();

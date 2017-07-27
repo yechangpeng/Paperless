@@ -7,6 +7,8 @@
 #include "../PaperlessPrepareDlg.h"
 #include "../CBase64.h"
 
+char g_sTmpFilePath[256] = {0};
+int nCount = 0;
 /**
  * 功能：通过curl，post发送报文
  * 输入：pStrUrl：发送的url地址
@@ -18,6 +20,7 @@
  **/ 
 int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSendRet, char *pSendRet)
 {
+	nCount = 0;
 	if (pStrUrl == NULL || pStrData == NULL || nDataSize < 0 || pSendRet == NULL || nSendRet <= 0)
 	{
 		return -1000;
@@ -31,11 +34,13 @@ int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSend
 	CURL *conn = curl_easy_init();
 	curl_slist *plist = curl_slist_append(NULL, "Content-Type:application/json;charset=UTF-8");
 	// 超时时间
-	curl_easy_setopt(conn, CURLOPT_TIMEOUT, 5);
+	curl_easy_setopt(conn, CURLOPT_TIMEOUT, 30);
 	// url地址
 	curl_easy_setopt(conn, CURLOPT_URL, pStrUrl);
 	// 服务端返回报文的回调函数
 	curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, &RecvData);
+	// 设置回调函数中的用户参数
+	//curl_easy_setopt(conn, CURLOPT_WRITEDATA, &g_sUserStr);
 	// 设置http请求头
 	curl_easy_setopt(conn, CURLOPT_HTTPHEADER, plist);
 	// 发送的数据
@@ -69,24 +74,106 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 	std::string* str = dynamic_cast<std::string*>((std::string *)pUserp);
 	if( NULL == str || NULL == pBuff )
 	{
+		GtWriteTrace(30, "[%s][%d]: 指针未空！", __FUNCTION__, __LINE__);
 		return -1;
 	}
-	GtWriteTrace(30, "[%s][%d]: 接到到数据（UTF-8）size=[%d]！", __FUNCTION__, __LINE__, nSize * nmemb);
-	GtWriteTrace(30, "[%s][%d]: 接到到数据（UTF-8）buff=[%s]！", __FUNCTION__, __LINE__, pBuff);
+	// 申请内存存放接收到的数据
+	char *pStrTmp = (char *) malloc(nSize * nmemb + 1);
+	if (pStrTmp == NULL)
+	{
+		GtWriteTrace(30, "[%s][%d]: 申请内存失败！err[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		return -2;
+	}
+	memset(pStrTmp, 0, nSize * nmemb + 1);
+	// 拷贝返回数据到临时字符串中
+	memcpy(pStrTmp, pBuff, nSize * nmemb);
 
-	// printf("pBuff%s\n",pBuff);
-	//GtWriteTrace(30, "[ScreenDlg]Receive pBuff = [%s], nSize = [%d]", pBuff, strlen((char *)pBuff));
-
+	GtWriteTrace(30, "[%s][%d]: 接到数据（UTF-8）size=[%d]！", __FUNCTION__, __LINE__, nSize * nmemb);
 	// utf-8转gbk
-	CString utf8String = (char *)pBuff;
-	ConvertUtf8ToGBK(utf8String);
-	GtWriteTrace(30, "[%s][%d]: 接到到数据（gbk）size=[%d]！", __FUNCTION__, __LINE__, utf8String.GetLength());
-	GtWriteTrace(30, "[%s][%d]: 接到到数据（gbk）buff=[%s]！", __FUNCTION__, __LINE__, utf8String.GetBuffer());
-	utf8String.ReleaseBuffer();
+	string strUTF8 = pStrTmp;
+	string strGBK = MyUtf8ToGBK(strUTF8);
+	if (pStrTmp != NULL)
+	{
+		free(pStrTmp);
+		pStrTmp = NULL;
+	}
+	GtWriteTrace(30, "[%s][%d]: 接到到数据（gbk）size=[%d]！", __FUNCTION__, __LINE__, strGBK.length());
+	GtWriteTrace(30, "[%s][%d]:	 buff=[%s]！", __FUNCTION__, __LINE__, strGBK.c_str());
 	//sprintf((char *)pBuff, "{\"type\":\"2\", \"code\":\"2\", \"msg\":\"成功\", \"filename\":\"XXbgService.exe\", \"version\":\"1.1\", \"application\":\"eyJCV0taTFgiOiI0IiwgIkpZRE0iOiIxMDEwMTAifQ==\"}");//测试字符串
-	sprintf((char *)pBuff, "{\"type\":\"2\", \"code\":\"0\", \"msg\":\"成功\", \"filename\":\"XXbgService.exe\", \"version\":\"1.1\", \"application\":\"eyJCV0taTFgiOiI0IiwgIkpZRE0iOiIxMDEwMTAifQ==\"}");//测试字符串
+	//sprintf((char *)pBuff, "{\"type\":\"2\", \"code\":\"0\", \"msg\":\"succeed\", \"filename\":\"XXbgService.exe\", \"version\":\"1.1\", \"application\":\"eyJCV0taTFgiOiI0IiwgIkpZRE0iOiIxMDEwMTAifQ==\"}");//测试字符串
+	// 接收数据写入文件中
+	FILE *fp = fopen(g_sTmpFilePath, "ab");
+	if (fp != NULL)
+	{
+		int nRet = fwrite(strGBK.c_str(), 1, strGBK.length(), fp);
+		if (nRet != strGBK.length())
+		{
+			GtWriteTrace(30, "[%s][%d]: 报文写入文件失败 fwrite nRet=[%d]！", __FUNCTION__, __LINE__, nRet);
+		}
+		fclose(fp);
+	}
 
-	string recvBuff = (char *)pBuff;
+	return nSize * nmemb;
+}
+
+
+/**
+ * 功能：从文件读取，返回报文并解析
+ **/ 
+int AnalyzeData()
+{
+	GtWriteTrace(30, "[%s][%d]: --------------收到报文总大小[%d]", __FUNCTION__, __LINE__, nCount);
+	// 从文件中读取报文
+	FILE *fp = NULL;
+	// 文件大小
+	long lSize = 0;
+	// 存放文件内容的字符串指针
+	char *fileBuffer = NULL;
+	// 真正读到的内容大小
+	size_t result = 0;
+
+	fp = fopen(g_sTmpFilePath, "rb");
+	if (fp == NULL)
+	{
+		// 文件打开失败
+		GtWriteTrace(30, "[%s][%d]: 报文文件打开失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("报文文件打开失败！");
+		return -1;
+	}
+	fseek (fp, 0, SEEK_END);
+	lSize = ftell(fp);
+	rewind (fp);
+	// 分配内存存储整个文件
+	fileBuffer= (char*) malloc(sizeof(char) * lSize + 1);
+	if (fileBuffer == NULL)
+	{
+		// 关闭文件
+		fclose(fp);
+		fp = NULL;
+		GtWriteTrace(30, "[%s][%d]: 读取报文文件时分配内存失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("本地报文读取请求失败！");
+		return -2;
+	}
+	memset(fileBuffer, 0, sizeof(fileBuffer));
+	// 将文件拷贝到fileBuffer中
+	result = fread(fileBuffer, 1, lSize, fp);
+	if (result != lSize)
+	{
+		// 关闭文件，释放内存
+		fclose(fp);
+		fp = NULL;
+		free(fileBuffer);
+		fileBuffer = NULL;
+		GtWriteTrace(30, "[%s][%d]: 读取报文文件[%s]失败！ err=[%d][%s]", __FUNCTION__, __LINE__, g_sTmpFilePath, errno, strerror(errno));
+		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("本地报文读取失败！");
+		return -3;
+	}
+	// 拷贝完成，关闭文件
+	fclose(fp);
+	fp = NULL;
+
+	GtWriteTrace(30, "[%s][%d]: fileBuffer [%s]", __FUNCTION__, __LINE__, fileBuffer);
+	string recvBuff = (char *)fileBuffer;
 	// 解析服务端返回的json类型数据，获取交易类型
 	//json解析
 	Json::Reader reader;
@@ -95,6 +182,7 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 	// 获取返回信息
 	string type;
 	//解析json报文，存到value中
+	GtWriteTrace(30, "[%s][%d]: recvBuff=[%s]", __FUNCTION__, __LINE__, recvBuff.c_str());
 	if(reader.parse(recvBuff, value))
 	{
 		// 获取交易类型
@@ -109,7 +197,6 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 			else
 			{
 				GtWriteTrace(30, "[%s][%d]服务器返回未定义的交易类型，type=[%s]!", __FUNCTION__, __LINE__, type);
-				//::MessageBoxA(NULL, "服务器返回未定义的交易类型！", "提示", MB_OK);
 				((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("服务器处理错误！");
 			}
 		}
@@ -117,21 +204,29 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 		{
 			// json解析失败
 			GtWriteTrace(30, "[%s][%d]服务器返回非json格式报文,解析出的json结构体size=0!", __FUNCTION__, __LINE__);
-			//::MessageBoxA(NULL, "服务器返回非json格式报文!！", "提示", MB_OK);
 			((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("服务器处理异常！");
 		}
-		
+
 	}
 	else
 	{
 		// json解析失败
 		GtWriteTrace(30, "[%s][%d]服务器返回非json格式报文!", __FUNCTION__, __LINE__);
-		//::MessageBoxA(NULL, "服务器返回非json格式报文!！", "提示", MB_OK);
 		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("服务器处理异常2！");
 	}
-
-	return nmemb;
+	// 处理结束，清理之前未清理的数据
+	if (fp != NULL)
+	{
+		fclose(fp);
+	}
+	if (fileBuffer != NULL)
+	{
+		free(fileBuffer);
+		fileBuffer = NULL;
+	}
+	return 0;
 }
+
 
 // 处理应用程序更新的返回
 int DealUpdateRet(Json::Value &sDataValue)
@@ -154,12 +249,12 @@ int DealUpdateRet(Json::Value &sDataValue)
 
 		char sSrcFile[256] = {0};
 		char sDestFile[256] = {0};
-		sprintf_s(sSrcFile, sizeof(sSrcFile)-1, "%s/%s", GetFilePath().GetBuffer(), filename.c_str());
-		sprintf_s(sDestFile, sizeof(sDestFile)-1, "%s/%s.loadtmp", GetFilePath().GetBuffer(), filename.c_str());
+		sprintf_s(sSrcFile, sizeof(sSrcFile)-1, "%s\\%s", GetFilePath().GetBuffer(), filename.c_str());
+		sprintf_s(sDestFile, sizeof(sDestFile)-1, "%s\\%s.loadtmp", GetFilePath().GetBuffer(), filename.c_str());
 		GtWriteTrace(30, "[%s][%d]源文件=[%s]，目标文件=[%s]!", __FUNCTION__, __LINE__, sSrcFile, sDestFile);
 
 		// 源文件备份，覆盖剪切
-		MoveFileEx(sDestFile, sSrcFile, MOVEFILE_REPLACE_EXISTING);
+		MoveFileEx(sSrcFile, sDestFile, MOVEFILE_REPLACE_EXISTING);
 
 		// 将文件进行base64解码，并写入到文件中
 		int nRet = 0;
@@ -179,12 +274,12 @@ int DealUpdateRet(Json::Value &sDataValue)
 			if (nRet != nBase64AfterLens)
 			{
 				// 写文件失败，源文件重新拷贝回来
-				MoveFileEx(sSrcFile, sDestFile, MOVEFILE_REPLACE_EXISTING);
+				MoveFileEx(sDestFile, sSrcFile, MOVEFILE_REPLACE_EXISTING);
 				((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("保存最新版本程序失败！");
 				return -1;
 			}
 			// 应用程序更新成功，版本号写入配置文件中
-			WritePrivateProfileString("Information", "Version", version.c_str(), GetFilePath()+"\\win.ini");
+			//WritePrivateProfileString("Information", "Version", version.c_str(), GetFilePath()+"\\win.ini");
 		}
 		// 启动主程序，成功启动后将关闭本程序
 		StartPaperless();
@@ -217,7 +312,8 @@ int StartPaperless()
 	char sRetMsg[128] = {0};
 
 	// 主应用程序路径
-	GetPrivateProfileString("Information", "AppDir", "../Paperless.exe", sAppDir, sizeof(sAppDir)-1, GetFilePath()+"\\win.ini");
+	sprintf_s(sAppDir, sizeof(sAppDir)-1, "%s\\XXbgService.exe", GetAppPath().GetBuffer());
+	//GetPrivateProfileString("Information", "AppDir", "../Paperless.exe", sAppDir, sizeof(sAppDir)-1, GetFilePath()+"\\win.ini");
 	GtWriteTrace(30, "[%s][%d]启动程序=[%s]!", __FUNCTION__, __LINE__, sAppDir);
 	// 启动主程序
 	LPCSTR lpcsDir = _T(sAppDir);

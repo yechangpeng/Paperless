@@ -15,10 +15,6 @@
 
 
 // CPaperlessPrepareDlg 对话框
-
-
-
-
 CPaperlessPrepareDlg::CPaperlessPrepareDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CPaperlessPrepareDlg::IDD, pParent)
 {
@@ -242,12 +238,24 @@ UINT ThreadFunc(LPVOID pParm)
 		jsonBuff["other"] = "";
 		string sData = jsonBuff.toStyledString();
 		
+		// 报文存放临时文件名
+		sprintf_s(g_sTmpFilePath, 256, "%s\\RecvData.loadtmp", GetFilePath().GetBuffer());
+		// 删除原有文件
+		DeleteFile(g_sTmpFilePath);
+		// 发送报文，并将返回报文存入文件 g_sTmpFilePath 中
 		nRet = SendData(sUrl, sData.c_str(), sData.length(), sizeof(sSendRet), sSendRet);
 		char sTip[128] = {0};
 		if (nRet != 0)
 		{
+			// 报文发送失败
 			sprintf_s(sTip, sizeof(sTip)-1, "连接服务器失败：%s", sSendRet);
 			pDlg->MyRetryWin(sTip);
+		}
+		else
+		{
+			// 数据接收完成，并且已保存到本地临时文件
+			// 读取文件，解析报文并处理
+			AnalyzeData();
 		}
 	}
 	return 0;
