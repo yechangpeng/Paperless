@@ -66,9 +66,10 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 
 	//声明IplImage指针
 	IplImage *pImgSrc = NULL;
-	//pImgSrc = cvLoadImage("C:\\Users\\Administrator\\Desktop\\test.jpg", CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
 	IplImage *pDest = NULL;
-#if 1
+#if 0
+	pImgSrc = cvLoadImage("C:\\Users\\Administrator\\Desktop\\test.jpg", CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
+#else
 	IplImage *pFrame = NULL;
 	int nReadErrCount = 0;
 	// 获取摄像头
@@ -118,7 +119,7 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 		return 108;
 	}
 	// 框选图形内的身份证，并存到图像pDest中
-	nRet = MyAutoCrop1(pImgSrc, &pDest);
+	nRet = MyAutoCrop(pImgSrc, &pDest);
 	char pSaveDesktopIDPicFilenm_1[256] = {0};
 	sprintf_s(pSaveDesktopIDPicFilenm_1, sizeof(pSaveDesktopIDPicFilenm_1)-1, "%s\\IDPicture\\pic.jpg", GetAppPath().GetBuffer());
 	cvSaveImage(pSaveDesktopIDPicFilenm_1, pImgSrc);

@@ -1,6 +1,7 @@
 md pack
 copy .\XXbgService.exe .\pack\
 copy .\PaperlessRestart.exe .\pack\
+copy .\PaperlessPrepare.exe .\pack\
 copy .\win.ini .\pack\
 copy .\centermcfg.ini .\pack\
 copy .\CTCameraDevice.ini .\pack\
