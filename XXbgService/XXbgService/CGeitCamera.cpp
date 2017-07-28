@@ -65,9 +65,11 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 		__FUNCTION__, __LINE__, sDeskScanNo, sIDPicWidth, sIDPicHigh, sAutoCropWaitTime);
 
 	//声明IplImage指针
-	IplImage *pFrame = NULL;
 	IplImage *pImgSrc = NULL;
+	//pImgSrc = cvLoadImage("C:\\Users\\Administrator\\Desktop\\test.jpg", CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
 	IplImage *pDest = NULL;
+#if 1
+	IplImage *pFrame = NULL;
 	int nReadErrCount = 0;
 	// 获取摄像头
 	CvCapture* pCapture = cvCreateCameraCapture(atoi(sDeskScanNo));
@@ -103,15 +105,20 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	cvCopy(pFrame, pImgSrc, NULL); 
 	// 释放摄像头
 	cvReleaseCapture(&pCapture);
+#endif
 
 //	cvNamedWindow("pImgSrc", 1);
 // 	cvShowImage("pImgSrc", pImgSrc);
 // 	cvWaitKey(0);
 // 	cvDestroyWindow("pImgSrc");
 
-
+	if (pImgSrc == NULL)
+	{
+		GtWriteTrace(30, "%s:%d: 获取帧照片失败 cvQueryFrame()", __FUNCTION__, __LINE__);
+		return 108;
+	}
 	// 框选图形内的身份证，并存到图像pDest中
-	nRet = MyAutoCrop(pImgSrc, &pDest);
+	nRet = MyAutoCrop1(pImgSrc, &pDest);
 	char pSaveDesktopIDPicFilenm_1[256] = {0};
 	sprintf_s(pSaveDesktopIDPicFilenm_1, sizeof(pSaveDesktopIDPicFilenm_1)-1, "%s\\IDPicture\\pic.jpg", GetAppPath().GetBuffer());
 	cvSaveImage(pSaveDesktopIDPicFilenm_1, pImgSrc);
