@@ -9,14 +9,15 @@
 
 char g_sTmpFilePath[256] = {0};
 int nCount = 0;
+
 /**
- * 功能：通过curl，post发送报文
- * 输入：pStrUrl：发送的url地址
+ * 功能:通过curl，post发送报文
+ * 参数:pStrUrl：发送的url地址
  *		pStrData：发送的数据
  *		nDataSize：发送数据长度
  *		nSendRet:失败原因字符串可存放大小
- * 输出：返回值：0-成功，其他失败
  *		pSendRet：失败原因
+ * 返回值：0-成功，其他失败
  **/ 
 int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSendRet, char *pSendRet)
 {
@@ -40,7 +41,7 @@ int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSend
 	// 服务端返回报文的回调函数
 	curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, &RecvData);
 	// 设置回调函数中的用户参数
-	//curl_easy_setopt(conn, CURLOPT_WRITEDATA, &g_sUserStr);
+	//curl_easy_setopt(conn, CURLOPT_WRITEDATA, g_pUserStr);
 	// 设置http请求头
 	curl_easy_setopt(conn, CURLOPT_HTTPHEADER, plist);
 	// 发送的数据
