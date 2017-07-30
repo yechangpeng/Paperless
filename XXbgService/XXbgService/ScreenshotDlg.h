@@ -31,8 +31,6 @@
 #include <string>
 using namespace std;
 
-BOOL SendHttp(int flag, const char *str, int size);
-size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp);
 
 class CScreenshotDlg : public CDialogEx
 {

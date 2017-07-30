@@ -19,7 +19,7 @@ int nCount = 0;
  *		pSendRet：失败原因
  * 返回值：0-成功，其他失败
  **/ 
-int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSendRet, char *pSendRet)
+int SendData(const char *pStrUrl, int nDataSize, const char *pStrData, int nSendRet, char *pSendRet)
 {
 	nCount = 0;
 	if (pStrUrl == NULL || pStrData == NULL || nDataSize < 0 || pSendRet == NULL || nSendRet <= 0)
@@ -128,7 +128,7 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 
 
 /**
- * 功能：从文件读取，返回报文并解析
+ * 功能：从文件读取返回报文并解析
  **/ 
 int AnalyzeData()
 {

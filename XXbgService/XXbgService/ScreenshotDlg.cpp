@@ -8,11 +8,11 @@
 #include "CBase64.h"
 #include "Json/json.h"
 #include "utils.h"
+#include "Network/HttpComm.h"
 
 #include "MyTTrace.h"
 
-#define BUFFER_LEN 1024
-char sendBuff[BUFFER_LEN] = {0};
+
 
 // CScreenshotDlg 对话框
 
@@ -439,11 +439,11 @@ HBRUSH CScreenshotDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 HBITMAP CScreenshotDlg::CopyScreenToBitmap(LPRECT lpRect,BOOL bSave)
 //lpRect 代表选定区域
 {
-	HDC       hScrDC, hMemDC;      
+	HDC       hScrDC, hMemDC;
 	// 屏幕和内存设备描述表
-	HBITMAP    hBitmap, hOldBitmap;   
+	HBITMAP    hBitmap, hOldBitmap;
 	// 位图句柄
-	int       nX, nY, nX2, nY2;      
+	int       nX, nY, nX2, nY2;
 	// 选定区域坐标
 	int       nWidth, nHeight;
 	
@@ -525,87 +525,9 @@ HBITMAP CScreenshotDlg::CopyScreenToBitmap(LPRECT lpRect,BOOL bSave)
 		if (SaveBitmapToFile(hBitmap, strDir))
 		{
 			// 保存图片成功
-			// 存储上传的数据
-			string msgStr_rtn;
-			// 读取 文件内容
-			FILE * pFile= NULL;
-			char *fileBuffer = NULL;
-			long lSize = 0;
-			ZBase64 zBase;
-			string encodeBase64;
-			do
-			{
-				size_t result = 0;
-				pFile = fopen (strDir.GetBuffer(strDir.GetLength()), "rb");
-				strDir.ReleaseBuffer();
-				if (pFile == NULL)
-				{
-					GtWriteTrace(30, "[ScreenDlg]Open picture [%s] failed!", strDir.GetBuffer(strDir.GetLength()));
-					strDir.ReleaseBuffer();
-					MessageBox("打开截图文件失败！请重试！");
-					break;
-				}
-				fseek (pFile, 0, SEEK_END);
-				lSize = ftell(pFile);
-				rewind (pFile);
-				// 判断文件是否大于10M
-				if (lSize > 1024 * 1024 * 10)
-				{
-					GtWriteTrace(30, "[ScreenDlg]Picture size is greater than 10M, size=%lfM!", (((double)lSize) / 1024 / 1024));
-					CString tmp;
-					tmp.Format("截图文件大小≈%.2lfM(大于10M)，请重新截取！", (((double)lSize) / 1024 / 1024));
-					MessageBox(tmp);
-					break;
-				}
-				// 分配内存存储整个文件
-				fileBuffer = (char*) malloc(sizeof(char) * lSize);
-				if (fileBuffer == NULL)
-				{
-					GtWriteTrace(30, "[ScreenDlg]Malloc fileBuffer failed!");
-					MessageBox("准备读取截图文件时分配内存失败！请重试！");
-					break;
-				}
-				// 将文件拷贝到fileBuffer中
-				result = fread(fileBuffer, 1, lSize, pFile);
-				if (result != lSize)
-				{
-					GtWriteTrace(30, "[ScreenDlg]Read file failed!");
-					MessageBox("读取截图文件失败！请重试！");
-					break;
-				}
-				// 读取截图文件成功，进行base64编码
-				encodeBase64 = zBase.Encode((const unsigned char*)fileBuffer, (int)lSize);
-				// 释放内存
-				free(fileBuffer);
-				fileBuffer = NULL;
-
-				// 组待发送的json报文
-				Json::Value msgStr_json;//表示一个json格式的对象
-				msgStr_json["type"] = "0";
-				msgStr_json["num"] = "";
-				msgStr_json["picSource"] = encodeBase64.c_str();
-				// 转string
-				msgStr_rtn = msgStr_json.toStyledString();
-				// 发送到web端
-				GtWriteTrace(30, "[ScreenDlg]Send picture message, sendBuffer=[%s], size=[%d]", 
-					msgStr_rtn.c_str(), (int)(msgStr_rtn.length()));
-				if (!SendHttp(1, msgStr_rtn.c_str(), (int)(msgStr_rtn.length())))
-				{
-					MessageBox("发送截图消息失败！请重试！");
-					break;
-				}
-			}while(0);
-			// 清理内存，关闭文件
-			if (fileBuffer != NULL)
-			{
-				free(fileBuffer);
-				fileBuffer = NULL;
-			}
-			if (pFile != NULL)
-			{
-				fclose (pFile);
-				pFile = NULL;
-			}
+			// 发送报文
+			SendDataPrepare(0, strDir.GetBuffer());
+			strDir.ReleaseBuffer();
 		}
 		else
 		{
@@ -614,221 +536,6 @@ HBITMAP CScreenshotDlg::CopyScreenToBitmap(LPRECT lpRect,BOOL bSave)
 	}
 	// 返回位图句柄
 	return hBitmap;
-}
-
-
-//---------------------------------------------------------------
-size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
-{
-	std::string* str = dynamic_cast<std::string*>((std::string *)userp);
-	if( NULL == str || NULL == buffer )
-	{
-		return -1;
-	}
-	GtWriteTrace(30, "[ScreenDlg]Receive buffer UTF-8 = [%s], size = [%d]", buffer, size * nmemb);
-	// printf("buffer%s\n",buffer);
-	//sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
-	//sprintf((char *)buffer, "{\"code\":\"1\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
-	//sprintf((char *)buffer, "{\"code\":\"2\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
-	//sprintf((char *)buffer, "{\"TYPE\":\"2\", \"RET_CODE\":\"0\"}");//测试字符串
-	//GtWriteTrace(30, "[ScreenDlg]Receive buffer = [%s], size = [%d]", buffer, strlen((char *)buffer));
-	// utf-8转gbk
-	CString utf8String = (char *)buffer;
-	ConvertUtf8ToGBK(utf8String);
-	GtWriteTrace(30, "[ScreenDlg]Receive buffer GBK = [%s], size = [%d]", utf8String.GetBuffer(), utf8String.GetLength());
-	utf8String.ReleaseBuffer();
-	string recvBuff = (char *)buffer;
-	// 解析服务端返回的json类型数据，获取交易类型
-	//json解析
-	Json::Reader reader;
-	//表示一个json格式的对象
-	Json::Value value;
-	// 获取返回信息
-	string code;
-	string msg;
-	string url;
-	//解析json报文，存到value中
-	if(reader.parse(recvBuff, value))
-	{
-		// 获取返回码
-		code = value["code"].asString();
-		if (code != "")
-		{
-			// 获取返回信息
-			msg = value["msg"].asString();
-			// 获取url或者失败信息
-			url = value["url"].asString();
-			//if (code == "0")
-			if (code.compare("0") == 0)
-			{
-				// 解析成功，截取第一个"|"前的网址
-				int ret;
-				char strUrl[512] = {0};
-				ret = splitString(strUrl, url.c_str(), 0);
-				if (ret != 0)
-				{
-					// 获取url地址失败
-					GtWriteTrace(30, "[ScreenDlg]splitString() failed! buff=[%s], ret=[%d]!", url.c_str(), ret);
-				}
-				else 
-				{
-					GtWriteTrace(30, "[ScreenDlg]splitString() succeed! url=[%s]!", strUrl);
-					memset(sendBuff, 0, sizeof(sendBuff));
-					// 赋值网址到全局变量中
-					memcpy(sendBuff, strUrl, strlen(strUrl));
-					//::MessageBoxA(0, sendBuff, "测试3", NULL);
-					// 显示网页(发消息给指定窗口)
-					::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetActiveView()->GetSafeHwnd(),
-						WM_HTML_SHOW, (WPARAM)sendBuff, NULL);
-				}
-			}
-			else if(code.compare("1") == 0)
-			{
-				// 二维码图片识别失败
-				GtWriteTrace(30, "[ScreenDlg]Ret=[%s], msg=[%s], Server recognizing images failed! Will send message to MainFrm!", code.c_str(), msg.c_str());
-				// 发消息到主窗口处理
-				::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetSafeHwnd(),
-					WM_SCREENDLG_MSG, (WPARAM)RECOGNIZE_PICTURE_FAILED, NULL);
-			}else if(code.compare("2") == 0)
-			{
-				// 二维码编号不存在
-				GtWriteTrace(30, "[ScreenDlg]Ret=[%s], msg=[%s], QR code number is not exist! Will send message to MainFrm!", code.c_str(), msg.c_str());
-				// 发消息到主窗口处理
-				::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetSafeHwnd(),
-					WM_SCREENDLG_MSG, (WPARAM)QR_CODE_NOT_EXIST, NULL);
-			}
-			else
-			{
-				// 其他交易类型
-				GtWriteTrace(30, "[ScreenDlg]Recvive illegal code[%d]!", code.c_str());
-				//::MessageBoxA(NULL, "web端返回未定义交易类型！", "提示", MB_OK);
-			}
-			if (1 == 1)
-			{
-
-			}
-		}
-
-		string type = value["TYPE"].asString();
-		string ret_code = value["RET_CODE"].asString();
-		if (type != "")
-		{
-			CString msg;
-			msg.Format("web端返回：%s", ret_code.c_str());
-			::MessageBoxA(NULL, msg, "提示", MB_OK);
-		}
-	}
-	else
-	{
-		// json解析失败
-		GtWriteTrace(30, "[ScreenDlg]Read json message failed!");
-		//::MessageBoxA(NULL, "解析json报文失败！", "提示", MB_OK);
-	}
-
-	return nmemb;
-}
-
-// flag 1-截图上传，2-编号上传
-BOOL SendHttp(int flag, const char *str, int size)
-{
-	BOOL ret = true;
-
-	CString keyStr = (flag == 1 ? "POST_URL_PIC" : "POST_URL_NO");
-	// 读取配置文件的url地址
-	CString urlString;
-	char urlChar[512] = {0};
-	GetPrivateProfileString("Information", keyStr.GetBuffer(keyStr.GetLength()), "http://192.168.1.53:8181/happyApp//a/sys/office/picGetUrl", 
-		urlString.GetBuffer(512), 512, GetAppPath()+"\\win.ini");
-	keyStr.ReleaseBuffer();
-	urlString.ReleaseBuffer();
-	memcpy(urlChar, (const char*)urlString.GetBuffer(urlString.GetLength()), urlString.GetLength());
-	urlString.ReleaseBuffer();
-
-	// url 打印到日志中
-	GtWriteTrace(30, "[ScreenDlg]url = [%s]", urlChar);
-
-#if 0
-	// get 方式发送
-	CURL *curl;
-	CURLcode res;
-	curl_global_init(CURL_GLOBAL_ALL);
-	curl = curl_easy_init();
-	// 超时时间
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
-	curl_easy_setopt(curl, CURLOPT_URL, urlChar);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_data);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, str);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, size);
-
-	res = curl_easy_perform(curl);
-	if(res != CURLE_OK)
-	{ 
-		GtWriteTrace(30,"[ScreenDlg]curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-		ret = false;
-	}
-	curl_easy_cleanup(curl);
-	curl_global_cleanup();
-#endif
-#if 1
-	// post方式发送
-	curl_global_init(CURL_GLOBAL_ALL);
-	CURL *conn = curl_easy_init();
-	curl_easy_setopt(conn, CURLOPT_TIMEOUT, 30);
-	curl_easy_setopt(conn, CURLOPT_URL, urlChar);
-	curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, &write_data);
-	// 设置json发送方式
-	curl_slist *plist = curl_slist_append(NULL, "Content-Type:application/json;charset=UTF-8");
-
-	curl_easy_setopt(conn, CURLOPT_HTTPHEADER, plist);
-	curl_easy_setopt(conn, CURLOPT_POSTFIELDS, str);
-	curl_easy_setopt(conn, CURLOPT_POSTFIELDSIZE, size);
-	curl_easy_setopt(conn, CURLOPT_POST, true);
-	CURLcode code = curl_easy_perform(conn);
-	if(code != CURLE_OK)
-	{ 
-		GtWriteTrace(30,"[ScreenDlg]curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
-		ret = false;
-	}
-	curl_easy_cleanup(conn);
-#endif
-
-#if 0
-	// post方式发送
-	curl_global_init(CURL_GLOBAL_ALL);
-	CURL *conn = curl_easy_init();
-	curl_easy_setopt(conn, CURLOPT_TIMEOUT, 5);
-	curl_easy_setopt(conn, CURLOPT_VERBOSE, 1L);
-	curl_slist *http_headers = NULL;
-	// 设置json发送方式
-	http_headers = curl_slist_append(http_headers, "Accept: application/json");
-	http_headers = curl_slist_append(http_headers, "Content-Type: application/json");
-	http_headers = curl_slist_append(http_headers, "charsets: utf-8");
-	curl_easy_setopt(conn, CURLOPT_CUSTOMREQUEST, "POST");
-	CURLcode code = curl_easy_setopt(conn, CURLOPT_HTTPHEADER, http_headers);
-
-	code = curl_easy_setopt(conn, CURLOPT_URL, urlChar);
-	if (code != CURLE_OK)
-	{
-		GtWriteTrace(EM_TraceDebug, "Failed to set URL [%d]\n", code);
-		return -3 ;
-	}
-	code =curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, &write_data);
-	//code =curl_easy_setopt(m_pCurlHandlder, CURLOPT_WRITEFUNCTION, CHTTPParse::OnWriteData);
-	string strResp;
-	//code =curl_easy_setopt(conn, CURLOPT_WRITEDATA, (void *)&strResp); 
-	curl_easy_setopt(conn, CURLOPT_SSL_VERIFYPEER, false);
-	curl_easy_setopt(conn, CURLOPT_SSL_VERIFYHOST, false);
-	curl_easy_setopt(conn,CURLOPT_FOLLOWLOCATION, 1);
-
-	code = curl_easy_perform(conn);
-	if(code != CURLE_OK)
-	{ 
-		GtWriteTrace(30,"[ScreenDlg]curl_easy_perform() failed: %s\n", curl_easy_strerror(code));
-		ret = false;
-	}
-	curl_easy_cleanup(conn);
-#endif 
-	return ret;
 }
 
 
@@ -1139,4 +846,3 @@ void CScreenshotDlg::ChangeRGB()
 	strOld=string;
 
 }
-

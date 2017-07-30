@@ -243,7 +243,7 @@ UINT ThreadFunc(LPVOID pParm)
 		// 删除原有文件
 		DeleteFile(g_sTmpFilePath);
 		// 发送报文，并将返回报文存入文件 g_sTmpFilePath 中
-		nRet = SendData(sUrl, sData.c_str(), sData.length(), sizeof(sSendRet), sSendRet);
+		nRet = SendData(sUrl, sData.length(), sData.c_str(), sizeof(sSendRet), sSendRet);
 		char sTip[128] = {0};
 		if (nRet != 0)
 		{

@@ -29,7 +29,7 @@ extern char g_sTmpFilePath[256];
  *		pSendRet：失败原因
  * 返回值：0-成功，其他失败
  **/ 
-int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSendRet, char *pSendRet);
+int SendData(const char *pStrUrl, int nDataSize, const char *pStrData, int nSendRet, char *pSendRet);
 
 /**
  * 功能：通过curl，post发送报文的回调函数，接收服务端的返回，存到临时文件g_sTmpFilePath中
@@ -37,7 +37,7 @@ int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSend
 size_t RecvData(void *pBuff, size_t nSize, size_t nMemb, void *pUserp);
 
 /**
- * 功能：从文件读取，返回报文并解析
+ * 功能：从文件读取返回报文并解析
  **/ 
 int AnalyzeData();
 

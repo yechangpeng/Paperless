@@ -43,6 +43,7 @@ CXXbgServiceApp::CXXbgServiceApp()
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
 	m_hwndDlg = NULL;
+	m_pHttpThread = NULL;
 }
 
 // 唯一的一个 CXXbgServiceApp 对象

@@ -8,6 +8,7 @@
 #include "ScreenshotDlg.h"
 #include "MyTTrace.h"
 #include "Json/json.h"
+#include "Network/HttpComm.h"
 
 
 // CManualInput dialog
@@ -81,26 +82,12 @@ void CManualInput::OnBnClickedBtnSend()
 	pEdit1 = (CEdit*) GetDlgItem(IDC_EDIT1);
 	pEdit1->GetWindowText(str);
 
-	// 组待发送的json报文
-	Json::Value msgStr_json;//表示一个json格式的对象
-	msgStr_json["type"] = "1";
-	msgStr_json["num"] = str.GetBuffer(str.GetLength());
-	str.ReleaseBuffer();
-	msgStr_json["picSource"] = "";
-	// 转string
-	msgStr_rtn = msgStr_json.toStyledString();
+	// 流水号逻辑性检查
 
-    // MessageBox(str, _T("程序运行结果"), MB_OK);
-	GtWriteTrace(30, "send number message, buffer=[%s], size=[%d]", msgStr_rtn.c_str(), msgStr_rtn.length());
-	if (!SendHttp(2, msgStr_rtn.c_str(), msgStr_rtn.length()))
-	{
-		GetDlgItem(IDC_STATIC2)->SetWindowText("发送失败，请重试！");
-	}
-	else
-	{
-		GetDlgItem(IDC_STATIC2)->SetWindowText("发送成功！");
-		CDialog::OnOK();
-	}
+	// 发送的json报文预处理
+	SendDataPrepare(1, str.GetBuffer());
+	str.ReleaseBuffer();
+
 }
 
 
