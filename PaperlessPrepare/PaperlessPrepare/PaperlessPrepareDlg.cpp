@@ -239,7 +239,7 @@ UINT ThreadFunc(LPVOID pParm)
 		string sData = jsonBuff.toStyledString();
 		
 		// 报文存放临时文件名
-		sprintf_s(g_sTmpFilePath, 256, "%s\\RecvData.loadtmp", GetFilePath().GetBuffer());
+		sprintf_s(g_sTmpFilePath, 256, "%s\\HttpRecvData.loadtmp", GetFilePath().GetBuffer());
 		// 删除原有文件
 		DeleteFile(g_sTmpFilePath);
 		// 发送报文，并将返回报文存入文件 g_sTmpFilePath 中

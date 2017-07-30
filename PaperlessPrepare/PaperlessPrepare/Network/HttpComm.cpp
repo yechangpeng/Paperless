@@ -68,21 +68,23 @@ int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSend
 }
 
 /**
- * 功能：通过curl，post发送报文的回调函数，接收服务端的返回
+ * 功能：通过curl，post发送报文的回调函数，接收服务端的返回，存到临时文件g_sTmpFilePath中
  **/ 
 size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 {
 	std::string* str = dynamic_cast<std::string*>((std::string *)pUserp);
 	if( NULL == str || NULL == pBuff )
 	{
-		GtWriteTrace(30, "[%s][%d]: 指针未空！", __FUNCTION__, __LINE__);
+		GtWriteTrace(30, "[%s][%d]: 指针为空！", __FUNCTION__, __LINE__);
 		return -1;
 	}
 	// 申请内存存放接收到的数据
 	char *pStrTmp = (char *) malloc(nSize * nmemb + 1);
 	if (pStrTmp == NULL)
 	{
-		GtWriteTrace(30, "[%s][%d]: 申请内存失败！err[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		char errMsg[256] = {0};
+		strerror_s(errMsg, sizeof(errMsg)-1, errno);
+		GtWriteTrace(30, "[%s][%d]: 申请内存失败！err[%d][%s]", __FUNCTION__, __LINE__, errno, errMsg);
 		return -2;
 	}
 	memset(pStrTmp, 0, nSize * nmemb + 1);
@@ -99,12 +101,19 @@ size_t RecvData(void *pBuff, size_t nSize, size_t nmemb, void *pUserp)
 		pStrTmp = NULL;
 	}
 	GtWriteTrace(30, "[%s][%d]: 接到到数据（gbk）size=[%d]！", __FUNCTION__, __LINE__, strGBK.length());
-	GtWriteTrace(30, "[%s][%d]:	 buff=[%s]！", __FUNCTION__, __LINE__, strGBK.c_str());
+	//GtWriteTrace(30, "[%s][%d]:	 buff=[%s]！", __FUNCTION__, __LINE__, strGBK.c_str());
 	//sprintf((char *)pBuff, "{\"type\":\"2\", \"code\":\"2\", \"msg\":\"成功\", \"filename\":\"XXbgService.exe\", \"version\":\"1.1\", \"application\":\"eyJCV0taTFgiOiI0IiwgIkpZRE0iOiIxMDEwMTAifQ==\"}");//测试字符串
 	//sprintf((char *)pBuff, "{\"type\":\"2\", \"code\":\"0\", \"msg\":\"succeed\", \"filename\":\"XXbgService.exe\", \"version\":\"1.1\", \"application\":\"eyJCV0taTFgiOiI0IiwgIkpZRE0iOiIxMDEwMTAifQ==\"}");//测试字符串
 	// 接收数据写入文件中
-	FILE *fp = fopen(g_sTmpFilePath, "ab");
-	if (fp != NULL)
+	FILE *fp = NULL;
+	fopen_s(&fp, g_sTmpFilePath, "ab");
+	if (fp == NULL)
+	{
+		char errMsg[256] = {0};
+		strerror_s(errMsg, sizeof(errMsg)-1, errno);
+		GtWriteTrace(30, "[%s][%d]: 接收报文时打开文件失败 error=[%d][%s]！", __FUNCTION__, __LINE__, errno, errMsg);
+	}
+	else
 	{
 		int nRet = fwrite(strGBK.c_str(), 1, strGBK.length(), fp);
 		if (nRet != strGBK.length())
@@ -133,11 +142,13 @@ int AnalyzeData()
 	// 真正读到的内容大小
 	size_t result = 0;
 
-	fp = fopen(g_sTmpFilePath, "rb");
+	fopen_s(&fp, g_sTmpFilePath, "rb");
 	if (fp == NULL)
 	{
 		// 文件打开失败
-		GtWriteTrace(30, "[%s][%d]: 报文文件打开失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		char errMsg[256] = {0};
+		strerror_s(errMsg, sizeof(errMsg)-1, errno);
+		GtWriteTrace(30, "[%s][%d]: 读取报文时文件打开失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, errMsg);
 		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("报文文件打开失败！");
 		return -1;
 	}
@@ -151,7 +162,9 @@ int AnalyzeData()
 		// 关闭文件
 		fclose(fp);
 		fp = NULL;
-		GtWriteTrace(30, "[%s][%d]: 读取报文文件时分配内存失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, strerror(errno));
+		char errMsg[256] = {0};
+		strerror_s(errMsg, sizeof(errMsg)-1, errno);
+		GtWriteTrace(30, "[%s][%d]: 读取报文文件时分配内存失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, errMsg);
 		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("本地报文读取请求失败！");
 		return -2;
 	}
@@ -165,7 +178,9 @@ int AnalyzeData()
 		fp = NULL;
 		free(fileBuffer);
 		fileBuffer = NULL;
-		GtWriteTrace(30, "[%s][%d]: 读取报文文件[%s]失败！ err=[%d][%s]", __FUNCTION__, __LINE__, g_sTmpFilePath, errno, strerror(errno));
+		char errMsg[256] = {0};
+		strerror_s(errMsg, sizeof(errMsg)-1, errno);
+		GtWriteTrace(30, "[%s][%d]: 读取报文文件[%s]失败！ err=[%d][%s]", __FUNCTION__, __LINE__, g_sTmpFilePath, errno, errMsg);
 		((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("本地报文读取失败！");
 		return -3;
 	}
@@ -193,7 +208,11 @@ int AnalyzeData()
 			if (type == "2")
 			{
 				// 应用程序更新的返回报文处理
-				DealUpdateRet(value);
+				int nRet = DealUpdateRet(value);
+				if (nRet != 0)
+				{
+					return -4;
+				}
 			}
 			else
 			{
@@ -266,8 +285,17 @@ int DealUpdateRet(Json::Value &sDataValue)
 		GtWriteTrace(30, "[%s][%d]待写入 len=[%d]!", __FUNCTION__, __LINE__, nBase64AfterLens);
 
 		FILE *fp = NULL;
-		fp = fopen(sSrcFile, "wb");
-		if (fp != NULL)
+		fopen_s(&fp, sSrcFile, "wb");
+		if (fp == NULL)
+		{
+			// 文件打开失败
+			char errMsg[256] = {0};
+			strerror_s(errMsg, sizeof(errMsg)-1, errno);
+			GtWriteTrace(30, "[%s][%d]: 应用程序写入时打开文件失败！ err=[%d][%s]", __FUNCTION__, __LINE__, errno, errMsg);
+			((CPaperlessPrepareDlg *)(AfxGetApp()->m_pMainWnd))->MyRetryWin("保存最新版本程序失败！");
+			return -2;
+		}
+		else
 		{
 			GtWriteTrace(30, "[%s][%d]更新版本保存到本地!", __FUNCTION__, __LINE__);
 			nRet = fwrite(sBase64After.c_str(), 1, nBase64AfterLens, fp);
@@ -280,7 +308,7 @@ int DealUpdateRet(Json::Value &sDataValue)
 				return -1;
 			}
 			// 应用程序更新成功，版本号写入配置文件中
-			//WritePrivateProfileString("Information", "Version", version.c_str(), GetFilePath()+"\\win.ini");
+			WritePrivateProfileString("Information", "Version", version.c_str(), GetFilePath()+"\\win.ini");
 		}
 		// 启动主程序，成功启动后将关闭本程序
 		StartPaperless();

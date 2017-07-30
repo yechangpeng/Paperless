@@ -76,9 +76,8 @@ BEGIN_MESSAGE_MAP(CScreenshotDlg, CDialogEx)
 	ON_WM_SETCURSOR()
 	ON_WM_RBUTTONUP()
 	ON_WM_CTLCOLOR()
-
-	ON_BN_CLICKED(IDC_MY_OK_BUTTON, OnMyOkButton)
-	ON_BN_CLICKED(IDC_MY_CANCLE_BUTTON, OnMyCancelButton)
+	ON_BN_CLICKED(IDC_MY_OK_BUTTON, OnBnClickedMyOkButton)
+	ON_BN_CLICKED(IDC_MY_CANCLE_BUTTON, OnBnClickedMyCancleButton)
 END_MESSAGE_MAP()
 // CScreenshotDlg 消息处理程序
 
@@ -92,14 +91,12 @@ BOOL CScreenshotDlg::OnInitDialog()
 	//把对化框设置成全屏顶层窗口
 	SetWindowPos(&wndTopMost,0,0,m_xScreen,m_yScreen,SWP_SHOWWINDOW);
 
-    
 	// 确认、取消按钮初始化
-	myOkButton = new CButton();
-	myOkButton->Create( "确定", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(0, 0, BTN_WIDTH, BTN_HIGH), this, IDC_MY_OK_BUTTON );
+	myOkButton = (CButton *)GetDlgItem(IDC_MY_OK_BUTTON);
 	myOkButton->MoveWindow(0, 0, BTN_WIDTH, BTN_HIGH);
 	myOkButton->ShowWindow(false);
-	myCancelButton = new CButton();
-	myCancelButton->Create( "取消", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(0, 0, BTN_WIDTH, BTN_HIGH), this, IDC_MY_CANCLE_BUTTON );
+
+	myCancelButton = (CButton *)GetDlgItem(IDC_MY_CANCLE_BUTTON);
 	myCancelButton->MoveWindow(0, 0, BTN_WIDTH, BTN_HIGH);
 	myCancelButton->ShowWindow(false);
 	
@@ -148,7 +145,6 @@ void CScreenshotDlg::OnPaint()
 	}
 	else
 	{
-//**************************************************************************
 		CPaintDC dc(this);
          
 		//显示截取矩形大小信息
@@ -166,25 +162,21 @@ void CScreenshotDlg::OnPaint()
 		{
 			m_rectTracker.Draw(&dc);
 		}
-
-//*************************************************************************
 		CDialog::OnPaint();
 	}
 }
 
 
 // ----------------------add ycp-------------
-void CScreenshotDlg::OnMyOkButton()
+void CScreenshotDlg::OnBnClickedMyOkButton()
 {
-	//MessageBox( "点击了确定按钮" );
-    //保存位图,bSave 为TRUE,
+	//保存位图,bSave 为TRUE,
 	CopyScreenToBitmap(m_rectTracker.m_rect, TRUE);
 	CDialog::OnOK();
 }
 
-void CScreenshotDlg::OnMyCancelButton()
+void CScreenshotDlg::OnBnClickedMyCancleButton()
 {
-	//MessageBox( "点击了取消按钮" );
 	CDialog::OnCancel();
 }
 
@@ -223,17 +215,12 @@ void CScreenshotDlg::HideenOkCancelBtn()
 
 void CScreenshotDlg::OnOK()
 {
-	// TODO: 在此添加专用代码和/或调用基类
-
 	CDialogEx::OnOK();
 }
 
 
 void CScreenshotDlg::OnCancel()
 {
-	// TODO: 在此添加专用代码和/或调用基类
-
-	//***************************************************************
 	if(m_bFirstDraw)
 	{
 		// 获取到ESC按键弹起，隐藏 确认、取消按钮
@@ -249,30 +236,25 @@ void CScreenshotDlg::OnCancel()
 		CDialogEx::OnCancel();
 		//ShowWindow(SW_HIDE);
 	}
-//*******************************************************************
 }
 
 
 void CScreenshotDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	//GtWriteTrace(30,"[ScreenDlg]OnMouseMove()");
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	//**************************************************************************************
-	   if(m_bDraw)
-	   {
-			//动态调整矩形大小,并刷新画出
-		    m_rectTracker.m_rect.SetRect(m_startPt.x+4,m_startPt.y+4,point.x,point.y);
-			PaintWindow();
-	   }
+	if(m_bDraw)
+	{
+		//动态调整矩形大小,并刷新画出
+		m_rectTracker.m_rect.SetRect(m_startPt.x+4,m_startPt.y+4,point.x,point.y);
+		PaintWindow();
+	}
 	   
-	   //弥补调整大小和位置时,接收不到MouseMove消息
-	   CRect rect;
-	   m_tipEdit.GetWindowRect(&rect);
-	   if(rect.PtInRect(point))
-		   m_tipEdit.SendMessage(WM_MOUSEMOVE);
+	//弥补调整大小和位置时,接收不到MouseMove消息
+	CRect rect;
+	m_tipEdit.GetWindowRect(&rect);
+	if(rect.PtInRect(point))
+		m_tipEdit.SendMessage(WM_MOUSEMOVE);
        
-	   ChangeRGB();
-	//*****************************************************************************************
+	ChangeRGB();
 	CDialogEx::OnMouseMove(nFlags, point);
 }
 
@@ -280,8 +262,6 @@ void CScreenshotDlg::OnMouseMove(UINT nFlags, CPoint point)
 void CScreenshotDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	//GtWriteTrace(30,"[ScreenDlg]OnLButtonDown()");
-	// TODO: 在此添加消息处理程序代码和/或调用默认值
-//*****************************************************************************************
 	int nHitTest;
 	nHitTest=m_rectTracker.HitTest(point);
 
@@ -521,127 +501,116 @@ HBITMAP CScreenshotDlg::CopyScreenToBitmap(LPRECT lpRect,BOOL bSave)
 	
 	if(bSave)
 	{
-				
-		if (OpenClipboard()) 
+		// 获取当前程序运行相对路径
+		CString strDir = GetAppPath();
+		// 判断截图文件存储目录是否存在，不存在则创建
+		CString strSubDir = strDir + "\\CatchScreen";
+		if (!PathIsDirectory(strSubDir))
 		{
-			//清空剪贴板
-			//EmptyClipboard();
-			//把屏幕内容粘贴到剪贴板上,
-			//hBitmap 为刚才的屏幕位图句柄
-			//SetClipboardData(CF_BITMAP, hBitmap);
-			//关闭剪贴板
-			//CloseClipboard();
-			// 获取当前程序运行相对路径
-			CString strDir = GetAppPath();
-			// 判断截图文件存储目录是否存在，不存在则创建
-			CString strSubDir = strDir + "\\CatchScreen";
-			if (!PathIsDirectory(strSubDir))
+			//创建目录,已有的话不影响
+			::CreateDirectory(strSubDir, NULL);
+		}
+		// 获取系统时间，
+		SYSTEMTIME st;
+		GetLocalTime(&st);
+		// 组截图文件相对路径文件名
+		CString strPath;
+		strPath.Format("\\CatchScreen\\CatchScreen-%04d%02d%02d-%02d%02d%02d-%03d.png",
+			st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+		// 拼截图文件绝对路径
+		strDir.Append(strPath);
+		// MessageBox(strDir);
+		// 截屏内容存到文件中
+		//SaveBitmapToFile(hBitmap, "C:\\Users\\Public\\Pictures\\test.png");
+		if (SaveBitmapToFile(hBitmap, strDir))
+		{
+			// 保存图片成功
+			// 存储上传的数据
+			string msgStr_rtn;
+			// 读取 文件内容
+			FILE * pFile= NULL;
+			char *fileBuffer = NULL;
+			long lSize = 0;
+			ZBase64 zBase;
+			string encodeBase64;
+			do
 			{
-				//创建目录,已有的话不影响
-				::CreateDirectory(strSubDir, NULL);
-			}
-			// 获取系统时间，
-			SYSTEMTIME st;
-			GetLocalTime(&st);
-			// 组截图文件相对路径文件名
-			CString strPath;
-			strPath.Format("\\CatchScreen\\CatchScreen-%04d%02d%02d-%02d%02d%02d-%03d.png",
-				st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-			// 拼截图文件绝对路径
-			strDir.Append(strPath);
-			// MessageBox(strDir);
-			// 截屏内容存到文件中
-			//SaveBitmapToFile(hBitmap, "C:\\Users\\Public\\Pictures\\test.png");
-			if (SaveBitmapToFile(hBitmap, strDir))
-			{
-				// 保存图片成功
-				// 存储上传的数据
-				string msgStr_rtn;
-				// 读取 文件内容
-				FILE * pFile= NULL;
-				char *fileBuffer = NULL;
-				long lSize = 0;
-				ZBase64 zBase;
-				string encodeBase64;
-				do
+				size_t result = 0;
+				pFile = fopen (strDir.GetBuffer(strDir.GetLength()), "rb");
+				strDir.ReleaseBuffer();
+				if (pFile == NULL)
 				{
-					size_t result = 0;
-					pFile = fopen (strDir.GetBuffer(strDir.GetLength()), "rb");
+					GtWriteTrace(30, "[ScreenDlg]Open picture [%s] failed!", strDir.GetBuffer(strDir.GetLength()));
 					strDir.ReleaseBuffer();
-					if (pFile == NULL)
-					{
-						GtWriteTrace(30, "[ScreenDlg]Open picture [%s] failed!", strDir.GetBuffer(strDir.GetLength()));
-						strDir.ReleaseBuffer();
-						MessageBox("打开截图文件失败！请重试！");
-						break;
-					}
-					fseek (pFile, 0, SEEK_END);
-					lSize = ftell(pFile);
-					rewind (pFile);
-					// 判断文件是否大于10M
-					if (lSize > 1024 * 1024 * 10)
-					{
-						GtWriteTrace(30, "[ScreenDlg]Picture size is greater than 10M, size=%lfM!", (((double)lSize) / 1024 / 1024));
-						CString tmp;
-						tmp.Format("截图文件大小≈%.2lfM(大于10M)，请重新截取！", (((double)lSize) / 1024 / 1024));
-						MessageBox(tmp);
-						break;
-					}
-					// 分配内存存储整个文件
-					fileBuffer = (char*) malloc(sizeof(char) * lSize);
-					if (fileBuffer == NULL)
-					{
-						GtWriteTrace(30, "[ScreenDlg]Malloc fileBuffer failed!");
-						MessageBox("准备读取截图文件时分配内存失败！请重试！");
-						break;
-					}
-					// 将文件拷贝到fileBuffer中
-					result = fread(fileBuffer, 1, lSize, pFile);
-					if (result != lSize)
-					{
-						GtWriteTrace(30, "[ScreenDlg]Read file failed!");
-						MessageBox("读取截图文件失败！请重试！");
-						break;
-					}
-					// 读取截图文件成功，进行base64编码
-					encodeBase64 = zBase.Encode((const unsigned char*)fileBuffer, (int)lSize);
-					// 释放内存
-					free(fileBuffer);
-					fileBuffer = NULL;
+					MessageBox("打开截图文件失败！请重试！");
+					break;
+				}
+				fseek (pFile, 0, SEEK_END);
+				lSize = ftell(pFile);
+				rewind (pFile);
+				// 判断文件是否大于10M
+				if (lSize > 1024 * 1024 * 10)
+				{
+					GtWriteTrace(30, "[ScreenDlg]Picture size is greater than 10M, size=%lfM!", (((double)lSize) / 1024 / 1024));
+					CString tmp;
+					tmp.Format("截图文件大小≈%.2lfM(大于10M)，请重新截取！", (((double)lSize) / 1024 / 1024));
+					MessageBox(tmp);
+					break;
+				}
+				// 分配内存存储整个文件
+				fileBuffer = (char*) malloc(sizeof(char) * lSize);
+				if (fileBuffer == NULL)
+				{
+					GtWriteTrace(30, "[ScreenDlg]Malloc fileBuffer failed!");
+					MessageBox("准备读取截图文件时分配内存失败！请重试！");
+					break;
+				}
+				// 将文件拷贝到fileBuffer中
+				result = fread(fileBuffer, 1, lSize, pFile);
+				if (result != lSize)
+				{
+					GtWriteTrace(30, "[ScreenDlg]Read file failed!");
+					MessageBox("读取截图文件失败！请重试！");
+					break;
+				}
+				// 读取截图文件成功，进行base64编码
+				encodeBase64 = zBase.Encode((const unsigned char*)fileBuffer, (int)lSize);
+				// 释放内存
+				free(fileBuffer);
+				fileBuffer = NULL;
 
-					// 组待发送的json报文
-					Json::Value msgStr_json;//表示一个json格式的对象
-					msgStr_json["type"] = "0";
-					msgStr_json["num"] = "";
-					msgStr_json["picSource"] = encodeBase64.c_str();
-					// 转string
-					msgStr_rtn = msgStr_json.toStyledString();
-					// 发送到web端
-					GtWriteTrace(30, "[ScreenDlg]Send picture message, sendBuffer=[%s], size=[%d]", 
-						msgStr_rtn.c_str(), (int)(msgStr_rtn.length()));
-					if (!SendHttp(1, msgStr_rtn.c_str(), (int)(msgStr_rtn.length())))
-					{
-						MessageBox("发送截图消息失败！请重试！");
-						break;
-					}
-				}while(0);
-				// 清理内存，关闭文件
-				if (fileBuffer != NULL)
+				// 组待发送的json报文
+				Json::Value msgStr_json;//表示一个json格式的对象
+				msgStr_json["type"] = "0";
+				msgStr_json["num"] = "";
+				msgStr_json["picSource"] = encodeBase64.c_str();
+				// 转string
+				msgStr_rtn = msgStr_json.toStyledString();
+				// 发送到web端
+				GtWriteTrace(30, "[ScreenDlg]Send picture message, sendBuffer=[%s], size=[%d]", 
+					msgStr_rtn.c_str(), (int)(msgStr_rtn.length()));
+				if (!SendHttp(1, msgStr_rtn.c_str(), (int)(msgStr_rtn.length())))
 				{
-					free(fileBuffer);
-					fileBuffer = NULL;
+					MessageBox("发送截图消息失败！请重试！");
+					break;
 				}
-				if (pFile != NULL)
-				{
-					fclose (pFile);
-					pFile = NULL;
-				}
-			}
-			else
+			}while(0);
+			// 清理内存，关闭文件
+			if (fileBuffer != NULL)
 			{
-				MessageBox("截图保存失败！请重试！");
+				free(fileBuffer);
+				fileBuffer = NULL;
 			}
-      }
+			if (pFile != NULL)
+			{
+				fclose (pFile);
+				pFile = NULL;
+			}
+		}
+		else
+		{
+			MessageBox("截图保存失败！请重试！");
+		}
 	}
 	// 返回位图句柄
 	return hBitmap;
@@ -1170,6 +1139,4 @@ void CScreenshotDlg::ChangeRGB()
 	strOld=string;
 
 }
-
-//*******************************************************************************************
 

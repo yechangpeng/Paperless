@@ -32,7 +32,7 @@ extern char g_sTmpFilePath[256];
 int SendData(const char *pStrUrl, const char *pStrData, int nDataSize, int nSendRet, char *pSendRet);
 
 /**
- * 功能：通过curl，post发送报文的回调函数，接收服务端的返回，存到临时文件中
+ * 功能：通过curl，post发送报文的回调函数，接收服务端的返回，存到临时文件g_sTmpFilePath中
  **/ 
 size_t RecvData(void *pBuff, size_t nSize, size_t nMemb, void *pUserp);
 

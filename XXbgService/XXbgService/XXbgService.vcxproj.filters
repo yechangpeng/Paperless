@@ -243,9 +243,6 @@
     <ClInclude Include="Json\writer.h">
       <Filter>头文件\Json</Filter>
     </ClInclude>
-    <ClInclude Include="Network\HttpComm.h">
-      <Filter>头文件\Network</Filter>
-    </ClInclude>
     <ClInclude Include="Network\iocp.h">
       <Filter>头文件\Network</Filter>
     </ClInclude>
@@ -263,6 +260,9 @@
     </ClInclude>
     <ClInclude Include="opencv\OpencvUtils.h">
       <Filter>头文件\opencv</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\HttpComm.h">
+      <Filter>头文件\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -329,9 +329,6 @@
     <ClCompile Include="Json\json_writer.cpp">
       <Filter>源文件\Json</Filter>
     </ClCompile>
-    <ClCompile Include="Network\HttpComm.cpp">
-      <Filter>源文件\Network</Filter>
-    </ClCompile>
     <ClCompile Include="Network\iocp.c">
       <Filter>源文件\Network</Filter>
     </ClCompile>
@@ -343,6 +340,9 @@
     </ClCompile>
     <ClCompile Include="opencv\OpencvUtils.cpp">
       <Filter>源文件\opencv</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\HttpComm.cpp">
+      <Filter>源文件\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

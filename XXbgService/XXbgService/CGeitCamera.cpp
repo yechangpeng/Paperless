@@ -102,7 +102,7 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 		return 108;
 	}
 	pImgSrc = cvCreateImage(cvSize(pFrame->width, pFrame->height), pFrame->depth, pFrame->nChannels);
-	//复制图像帧
+	// 复制图像帧
 	cvCopy(pFrame, pImgSrc, NULL); 
 	// 释放摄像头
 	cvReleaseCapture(&pCapture);

@@ -10,8 +10,6 @@
 #include "afxwin.h"
 #pragma once
 
-#define IDC_MY_OK_BUTTON 10000
-#define IDC_MY_CANCLE_BUTTON 10001
 #define IDC_MY_EDIT 20000
 #define EDIT_WIDTH 100
 #define EDIT_HIGH 20
@@ -62,8 +60,8 @@ protected:
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	// 
-	afx_msg void OnMyOkButton();
-	afx_msg void OnMyCancelButton();
+	afx_msg void OnBnClickedMyOkButton();
+	afx_msg void OnBnClickedMyCancleButton();
 	DECLARE_MESSAGE_MAP()
 //**********************************************************************
 public:
