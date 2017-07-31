@@ -152,28 +152,19 @@ int SendDataPrepare(int nFlag, const char *pStrData)
 	g_mSend_data.pSendBuff = (char *)malloc(strSendData.length());
 	memcpy(g_mSend_data.pSendBuff, strSendData.c_str(), strSendData.length());
 	// 报文组织完成，开启线程，发送报文
-	// 判断线程是否创建过
-	if (NULL == theApp.m_pHttpThread)
+
+	// 判断线程是否在运行，在运行则进行提示
+	if (theApp.bIsHttpThreadRun)
 	{
-		// 未创建过，直接创建线程，并运行
-		theApp.m_pHttpThread = AfxBeginThread(ThreadSendDataFunc, NULL);
+		// 上个线程正在运行，提示线程正在发送报文
+		GtWriteTrace(30, "%s:%d: 线程正在运行！", __FUNCTION__, __LINE__);
+		::MessageBoxA(NULL, "正在发送请求，请等待...", "提示", MB_OK);
 	}
 	else
 	{
-		// 创建过线程，判断线程是否在运行，在运行则进行提示
-		DWORD lpExitCode;
-		GetExitCodeThread( theApp.m_pHttpThread, &lpExitCode);
-		// 函数执行成功，且线程处于运行状态
-		if (STILL_ACTIVE == lpExitCode)
-		{
-			// 提示线程正在发送报文
-			::MessageBoxA(NULL, "正在发送请求，请等待...", "提示", MB_OK);
-		}
-		else
-		{
-			// 否则重新创建线程，发送报文
-			theApp.m_pHttpThread = AfxBeginThread(ThreadSendDataFunc, NULL);
-		}
+		// 上个线程运行结束，重新创建线程发送报文
+		GtWriteTrace(30, "%s:%d: 重新创建线程，发送报文！", __FUNCTION__, __LINE__);
+		theApp.m_pHttpThread = AfxBeginThread(ThreadSendDataFunc, NULL);
 	}
 	return 0;
 }
@@ -182,6 +173,7 @@ int SendDataPrepare(int nFlag, const char *pStrData)
 // 发送HTTP报文线程函数
 UINT ThreadSendDataFunc(LPVOID pParm)
 {
+	theApp.bIsHttpThreadRun = TRUE;
 	int nRet = 0;
 	char keyStr[32] = {0};
 	char sUrlAddr[256] = {0};
@@ -196,6 +188,7 @@ UINT ThreadSendDataFunc(LPVOID pParm)
 	{
 		// 如果未配置地址，提示
 		::MessageBoxA(NULL, "服务器地址未配置，请配置！", "错误", MB_OK);
+		theApp.bIsHttpThreadRun = FALSE;
 		return -1;
 	}
 
@@ -221,6 +214,7 @@ UINT ThreadSendDataFunc(LPVOID pParm)
 	// 释放发送报文的字符串
 	free(g_mSend_data.pSendBuff);
 	g_mSend_data.pSendBuff = NULL;
+	theApp.bIsHttpThreadRun = FALSE;
 	return 0;
 }
 
@@ -403,7 +397,7 @@ int AnalyzeData()
 
 	GtWriteTrace(30, "[%s][%d]: fileBuffer [%s]", __FUNCTION__, __LINE__, fileBuffer);
 	char buffer[128] = {0};
-	sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
+	//sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"1\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"2\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
 	// string recvBuff = (char *)fileBuffer;

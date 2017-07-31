@@ -24,13 +24,13 @@ CScreenshotDlg::CScreenshotDlg(CWnd* pParent /*=NULL*/)
 	//*******************************************************************************
     //初始化像皮筋类,新增的resizeMiddle 类型
 	m_rectTracker.m_nStyle=CMyTracker::resizeMiddle|CMyTracker::solidLine;  
-	m_rectTracker.m_rect.SetRect(-1,-2,-3,-4);
+	m_rectTracker.m_rect.SetRect(-1, -2, -3, -4);
 	//设置矩形颜色
-	m_rectTracker.SetRectColor(RGB(10,100,130));
+	m_rectTracker.SetRectColor(RGB(10, 100, 130));
 	//设置矩形调整时光标,默认的太小了,弄了个大点的
 	m_rectTracker.SetResizeCursor(IDC_CURSOR6,IDC_CURSOR5,IDC_CURSOR2,IDC_CURSOR3,IDC_CURSOR4);
 
-    m_hCursor=AfxGetApp()->LoadCursor(IDC_CURSOR1);  
+    m_hCursor=AfxGetApp()->LoadCursor(IDC_CURSOR1);
     
 	// 保存系统光标
 	m_hOldCursor = AfxGetApp()-> LoadStandardCursor(IDC_ARROW);
@@ -47,11 +47,11 @@ CScreenshotDlg::CScreenshotDlg(CWnd* pParent /*=NULL*/)
 	m_yScreen = GetSystemMetrics(SM_CYSCREEN);
 
 	//截取屏幕到位图中
-	CRect rect(0, 0,m_xScreen,m_yScreen);
+	CRect rect(0, 0, m_xScreen, m_yScreen);
 	m_pBitmap=CBitmap::FromHandle(CopyScreenToBitmap(&rect));
     
 	//初始化刷新窗口区域 m_rgn
-    m_rgn.CreateRectRgn(0,0,50,50);
+	m_rgn.CreateRectRgn(0, 0, 50, 50);
 //*******************************************************************************
 }
 
@@ -89,7 +89,7 @@ BOOL CScreenshotDlg::OnInitDialog()
 	// TODO:  在此添加额外的初始化
 	//**************************************************************************
 	//把对化框设置成全屏顶层窗口
-	SetWindowPos(&wndTopMost,0,0,m_xScreen,m_yScreen,SWP_SHOWWINDOW);
+	SetWindowPos(&wndTopMost, 0, 0, m_xScreen, m_yScreen, SWP_SHOWWINDOW);
 
 	// 确认、取消按钮初始化
 	myOkButton = (CButton *)GetDlgItem(IDC_MY_OK_BUTTON);
@@ -107,17 +107,16 @@ BOOL CScreenshotDlg::OnInitDialog()
 	myEdit->ShowWindow(true);
 	*/
 
-
 	//移动操作提示窗口
 	CRect rect;
 	m_tipEdit.GetWindowRect(&rect);
-    m_tipEdit.MoveWindow(10,10,rect.Width(),rect.Height());
+    m_tipEdit.MoveWindow(10, 10, rect.Width(), rect.Height());
 
 	//显示操作提示窗口文字
 	DrawTip();
 	
 	//捕获按键消息窗口,将对话框的句柄传递到CCatchScreenApp中
-	((CXXbgServiceApp *)AfxGetApp())->m_hwndDlg=m_hWnd;
+	((CXXbgServiceApp *)AfxGetApp())->m_hwndDlg = m_hWnd;
 	//**************************************************************************
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -126,6 +125,7 @@ BOOL CScreenshotDlg::OnInitDialog()
 
 void CScreenshotDlg::OnPaint()
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // device context for painting
@@ -141,20 +141,20 @@ void CScreenshotDlg::OnPaint()
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
 		// Draw the icon
-	//	dc.DrawIcon(x, y, m_hIcon);
+		//dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
 	{
 		CPaintDC dc(this);
          
 		//显示截取矩形大小信息
-		if(m_bShowMsg&&m_bFirstDraw)
+		if(m_bShowMsg && m_bFirstDraw)
 		{
 			//得到当前矩形大小
 			CRect rect;
 			m_rectTracker.GetTrueRect(&rect);
 			//传递CPaintDC 是为了不在了窗口上画信息
-			DrawMessage(rect,&dc);
+			DrawMessage(rect, &dc);
 		}
 
 		//画出像皮筋矩形
@@ -221,11 +221,12 @@ void CScreenshotDlg::OnOK()
 
 void CScreenshotDlg::OnCancel()
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	if(m_bFirstDraw)
 	{
 		// 获取到ESC按键弹起，隐藏 确认、取消按钮
 		HideenOkCancelBtn();
-		//取消已画矩形变量
+		// 取消已画矩形变量
 		m_bFirstDraw=FALSE;
 		m_bDraw=FALSE;
 		m_rectTracker.m_rect.SetRect(-1,-1,-1,-1);
@@ -241,6 +242,7 @@ void CScreenshotDlg::OnCancel()
 
 void CScreenshotDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	if(m_bDraw)
 	{
 		//动态调整矩形大小,并刷新画出
@@ -261,6 +263,7 @@ void CScreenshotDlg::OnMouseMove(UINT nFlags, CPoint point)
 
 void CScreenshotDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//GtWriteTrace(30,"[ScreenDlg]OnLButtonDown()");
 	int nHitTest;
 	nHitTest=m_rectTracker.HitTest(point);
@@ -316,7 +319,7 @@ void CScreenshotDlg::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CScreenshotDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	//GtWriteTrace(30,"[ScreenDlg]OnLButtonUp()");
+	GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 //****************************************************************************************    
 	m_bShowMsg=FALSE;
@@ -333,6 +336,7 @@ void CScreenshotDlg::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CScreenshotDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//GtWriteTrace(30,"[ScreenDlg]OnLButtonDblClk()");
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 //****************************************************************************************
@@ -352,6 +356,7 @@ void CScreenshotDlg::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 BOOL CScreenshotDlg::OnEraseBkgnd(CDC* pDC)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 //**************************************************************************************
 	//用整个桌面填充全屏对话框背景
@@ -376,6 +381,7 @@ BOOL CScreenshotDlg::OnEraseBkgnd(CDC* pDC)
 
 BOOL CScreenshotDlg::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 //***********************************************************************
 	//设置改变截取矩形大小时光标
@@ -394,6 +400,7 @@ BOOL CScreenshotDlg::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 }
 void CScreenshotDlg::OnRButtonUp(UINT nFlags, CPoint point)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//GtWriteTrace(30,"[ScreenDlg]OnRButtonUp()");
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 //****************************************************************************************
@@ -411,15 +418,16 @@ void CScreenshotDlg::OnRButtonUp(UINT nFlags, CPoint point)
 		 // 对话框退出
 		 CDialog::OnOK();
 	}
-	// 右键弹起，取消选中的截图区，隐藏确认、取消按钮
-	HideenOkCancelBtn();
 //****************************************************************************************
 	CDialogEx::OnRButtonUp(nFlags, point);
+	// 右键弹起，取消选中的截图区，隐藏确认、取消按钮
+	HideenOkCancelBtn();
 }
 
 
 HBRUSH CScreenshotDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
 
 	// TODO:  在此更改 DC 的任何特性
@@ -525,6 +533,8 @@ HBITMAP CScreenshotDlg::CopyScreenToBitmap(LPRECT lpRect,BOOL bSave)
 		if (SaveBitmapToFile(hBitmap, strDir))
 		{
 			// 保存图片成功
+			//SetWindowPos(&wndTopMost, 0, 0, 0, 0, SWP_HIDEWINDOW);
+			ShowWindow(false);
 			// 发送报文
 			SendDataPrepare(0, strDir.GetBuffer());
 			strDir.ReleaseBuffer();
@@ -652,7 +662,7 @@ BOOL CScreenshotDlg::SaveBitmapToFile(HBITMAP hBitmap, LPCTSTR lpFileName )
 //显示操作提示信息
 void CScreenshotDlg::DrawTip()
 {
-	//GtWriteTrace(30,"[ScreenDlg]DrawTip()");
+	GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
     //得当前坐标像素,
 	CPoint pt;
 	GetCursorPos(&pt);
@@ -669,14 +679,14 @@ void CScreenshotDlg::DrawTip()
 	//按格式排放字符串
 	CString string;
 	CString strTemp;
-	string.Format("\r\n\r\n\r\n ·当前像素RGB (%d,%d,%d)\r\n",rValue,gValue,bValue);
+	string.Format("\r\n\r\n\r\n ·当前像素RGB (%d,%d,%d)\r\n", rValue, gValue, bValue);
     
-	if(!m_bDraw&&!m_bFirstDraw)
+	if(!m_bDraw && !m_bFirstDraw)
 	{
 		strTemp="\r\n ·按下鼠标左键不放选择截取\r\n 范围\r\n\r\n ·按ESC键或鼠标右键退出";
 	}
 	else
-	if(m_bDraw&&m_bFirstDraw)
+	if(m_bDraw && m_bFirstDraw)
 	{
 		strTemp="\r\n ·松开鼠标左键确定截取范围\r\n\r\n ·按ESC键退出";
 	}
@@ -686,6 +696,7 @@ void CScreenshotDlg::DrawTip()
 		strTemp="\r\n ·用鼠标左键调整截取范围的\r\n 大小和位置\r\n\r\n ·截取范围内双击鼠标左键保\r\n 存图像，结束操作\r\n\r\n ·点击鼠标右键重新选择";
 	}
 	string+=strTemp;
+	GtWriteTrace(30, "%s:%d  [%s]", __FUNCTION__, __LINE__, string.GetBuffer());
 	//显示到编缉框中,操作提示窗口
 	m_tipEdit.SetWindowText(string);
 }
@@ -693,6 +704,7 @@ void CScreenshotDlg::DrawTip()
 //显示截取矩形信息
 void CScreenshotDlg::DrawMessage(CRect &inRect,CDC * pDC)
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//截取矩形大小信息离鼠标间隔
 	const int space=3;
     
@@ -743,7 +755,6 @@ void CScreenshotDlg::DrawMessage(CRect &inRect,CDC * pDC)
 		rectTemp.top=rect.top+rect.Height()+space*2;;
 		rectTemp.bottom=rect.bottom+rect.Height()+space*2;;
 		rect=rectTemp;
-		
 	}
 
 	//创建空画刷画矩形
@@ -786,6 +797,7 @@ void CScreenshotDlg::DrawMessage(CRect &inRect,CDC * pDC)
 //重画窗口
 void CScreenshotDlg::PaintWindow()
 {
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//获取当全屏对话框窗口大小
 	CRect rect1;
 	GetWindowRect(rect1);
@@ -807,6 +819,7 @@ void CScreenshotDlg::PaintWindow()
 //改变操作提示窗口当RGB值
 void CScreenshotDlg::ChangeRGB()
 {
+	GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//保存旧的RGB值字符串
 	static CString strOld("");
 
@@ -824,7 +837,7 @@ void CScreenshotDlg::ChangeRGB()
 	
 	//按格式排放字符串
 	CString string;
-	string.Format("(%d,%d,%d)",rValue,gValue,bValue);
+	string.Format(" (%d,%d,%d)",rValue,gValue,bValue);
 	//如果当前颜色没变则不刷新RGB值,以免窗口有更多闪烁
     if(strOld!=string)
 	{

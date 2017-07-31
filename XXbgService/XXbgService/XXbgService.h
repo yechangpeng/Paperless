@@ -41,6 +41,7 @@ public:
 	HWND m_hwndDlg;
 	// 发送http报文线程
 	CWinThread *m_pHttpThread;
+	volatile BOOL bIsHttpThreadRun;
 //*******************************
 	virtual BOOL ProcessMessageFilter(int code, LPMSG lpMsg);
 };

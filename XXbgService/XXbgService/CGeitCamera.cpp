@@ -64,6 +64,14 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	GtWriteTrace(30, "%s:%d: 参数: sDeskScanNo=[%s], sIDPicWidth=[%s], sIDPicHigh=[%s], sAutoCropWaitTime=[%s]",
 		__FUNCTION__, __LINE__, sDeskScanNo, sIDPicWidth, sIDPicHigh, sAutoCropWaitTime);
 
+	int nFrameIndex = abs(atoi(sAutoCropWaitTime));
+	if (nFrameIndex > 50)
+	{
+		GtWriteTrace(30, "%s:%d: 配置 AutoCropWaitTime 帧数 > 50 ", __FUNCTION__, __LINE__);
+		return 105;
+	}
+	GtWriteTrace(30, "%s:%d: 开始获取摄像头照片完成", __FUNCTION__, __LINE__);
+
 	//声明IplImage指针
 	IplImage *pImgSrc = NULL;
 	IplImage *pDest = NULL;
@@ -82,19 +90,29 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_WIDTH , 1280);
 	cvSetCaptureProperty(pCapture , CV_CAP_PROP_FRAME_HEIGHT, 960);
 
-	// 等待时间
-	Sleep(atoi(sAutoCropWaitTime));
+	// 等待第几帧获取照片
+//	Sleep(atoi(sAutoCropWaitTime));
+	int nReadFrame = 0;
 	int nReadNullCount = 0;
-	pFrame = cvQueryFrame( pCapture );
-	while (NULL == pFrame)
+	while (1)
 	{
-		nReadNullCount++;
-		if (nReadNullCount > 6)
+		nReadFrame++;
+		pFrame = cvQueryFrame( pCapture );
+		if (pFrame == NULL)
+		{
+			nReadNullCount++;
+			if (nReadNullCount > 6)
+			{
+				break;
+			}
+		}
+		if (nReadFrame > nFrameIndex)
 		{
 			break;
 		}
-		pFrame=cvQueryFrame( pCapture );
+		//cvWaitKey(5);
 	}
+	GtWriteTrace(30, "%s:%d: 获取摄像头照片完成", __FUNCTION__, __LINE__);
 	if (NULL == pFrame)
 	{
 		GtWriteTrace(30, "%s:%d: 获取摄像头照片失败 cvQueryFrame()", __FUNCTION__, __LINE__);
@@ -123,6 +141,7 @@ int CGeitCamera::MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm)
 	char pSaveDesktopIDPicFilenm_1[256] = {0};
 	sprintf_s(pSaveDesktopIDPicFilenm_1, sizeof(pSaveDesktopIDPicFilenm_1)-1, "%s\\IDPicture\\pic.jpg", GetAppPath().GetBuffer());
 	cvSaveImage(pSaveDesktopIDPicFilenm_1, pImgSrc);
+	GtWriteTrace(30, "%s:%d: 框选摄像头照片完成", __FUNCTION__, __LINE__);
 	//nRet = 1;
 	if (nRet == 0 && pDest != NULL)
 	{
