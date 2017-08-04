@@ -541,27 +541,10 @@ void MyGetPinYin(const char *name, char *PinYin)
 	{
 		return ;
 	}
-
-	int count = strlen(name) / 2;
-	unsigned char newName[512] = {0};
-
-	// 在汉字各字之间添加空格，存到 newName 中
-	// 两个字节表示一个中文，进行中文截取，截取最大偶数字节
-	for (int i = 0; i < count; i++)
-	{
-		memcpy(newName + (i * 3), name + (i * 2), 2);
-		memcpy(newName + (i * 3) + 2, " ", 1);
-	}
-	// 判断是否非偶数字节
-	if (strlen(name) % 2 != 0)
-	{
-		memcpy(newName + count * 3, name + count * 2, 1);
-	}
-	// 调函数转小写拼音
+	/******************中文转大写拼音，无空格*********************/
 	string tmpPinYin;
-	GetPinYin(newName, tmpPinYin);
+	GetPinYin((unsigned char *)name, tmpPinYin);
 	memcpy(PinYin, tmpPinYin.c_str(), tmpPinYin.length());
-
 	// 将小写拼音转化为大写拼音
 	int nPinYinLen = strlen(PinYin);
 	for (int j = 0; j < nPinYinLen; j++)
@@ -571,7 +554,37 @@ void MyGetPinYin(const char *name, char *PinYin)
 			PinYin[j] = PinYin[j] - 32;
 		}
 	}
-	//printf("PinYin = %s\n", PinYin);
+
+	/******************中文转大写拼音，有空格*********************/
+// 	int count = strlen(name) / 2;
+// 	unsigned char newName[512] = {0};
+// 
+// 	// 在汉字各字之间添加空格，存到 newName 中
+// 	// 两个字节表示一个中文，进行中文截取，截取最大偶数字节
+// 	for (int i = 0; i < count; i++)
+// 	{
+// 		memcpy(newName + (i * 3), name + (i * 2), 2);
+// 		memcpy(newName + (i * 3) + 2, " ", 1);
+// 	}
+// 	// 判断是否非偶数字节
+// 	if (strlen(name) % 2 != 0)
+// 	{
+// 		memcpy(newName + count * 3, name + count * 2, 1);
+// 	}
+// 	// 调函数转小写拼音
+// 	string tmpPinYin;
+// 	GetPinYin(newName, tmpPinYin);
+// 	memcpy(PinYin, tmpPinYin.c_str(), tmpPinYin.length());
+// 
+// 	// 将小写拼音转化为大写拼音
+// 	int nPinYinLen = strlen(PinYin);
+// 	for (int j = 0; j < nPinYinLen; j++)
+// 	{
+// 		if (PinYin[j] >= 'a' && PinYin[j] <= 'z')
+// 		{
+// 			PinYin[j] = PinYin[j] - 32;
+// 		}
+// 	}
 	return ;
 }
 
@@ -608,6 +621,7 @@ void ConvertUtf8ToGBK(CString &strUtf8)
 	delete[] szGBK;
 	delete[] wszGBK;
 }
+
 
 //GBK转化为UTF8格式
 void ConvertGBKToUtf8(CString &strGBK)

@@ -19,14 +19,14 @@
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{d7ef7eed-26f2-4028-b797-fea05e7ca6e0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Json">
-      <UniqueIdentifier>{f9d2c636-086c-4ab4-b3d9-aafd31165dd6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Json">
-      <UniqueIdentifier>{0b9948fb-4cac-4d9d-8004-d7da8e84d62d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Curl">
       <UniqueIdentifier>{45e4812c-dd1a-40bf-8689-b07b09b496b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Json">
+      <UniqueIdentifier>{fc1992f0-3f0c-4568-9cd8-19b8091ddae8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Json">
+      <UniqueIdentifier>{4e36f1f6-e57c-472f-adb9-410f709ca6f1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,15 +36,6 @@
     </None>
     <None Include="res\PaperlessPrepare.ico">
       <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Json\json_internalarray.inl">
-      <Filter>Header Files\Json</Filter>
-    </None>
-    <None Include="Json\json_internalmap.inl">
-      <Filter>Header Files\Json</Filter>
-    </None>
-    <None Include="Json\json_valueiterator.inl">
-      <Filter>Header Files\Json</Filter>
     </None>
     <None Include="Curl\curlbuild.h.cmake">
       <Filter>Header Files\Curl</Filter>
@@ -57,6 +48,15 @@
     </None>
     <None Include="Curl\Makefile.in">
       <Filter>Header Files\Curl</Filter>
+    </None>
+    <None Include="Json\json_internalarray.inl">
+      <Filter>Header Files\Json</Filter>
+    </None>
+    <None Include="Json\json_internalmap.inl">
+      <Filter>Header Files\Json</Filter>
+    </None>
+    <None Include="Json\json_valueiterator.inl">
+      <Filter>Header Files\Json</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -80,33 +80,6 @@
     </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\autolink.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\config.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\features.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\forwards.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\json.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\json_batchallocator.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\reader.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\value.h">
-      <Filter>Header Files\Json</Filter>
-    </ClInclude>
-    <ClInclude Include="Json\writer.h">
-      <Filter>Header Files\Json</Filter>
     </ClInclude>
     <ClInclude Include="Curl\curl.h">
       <Filter>Header Files\Curl</Filter>
@@ -141,6 +114,33 @@
     <ClInclude Include="CBase64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Json\autolink.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\config.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\features.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\forwards.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\json.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\json_batchallocator.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\reader.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\value.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
+    <ClInclude Include="Json\writer.h">
+      <Filter>Header Files\Json</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PaperlessPrepare.cpp">
@@ -158,6 +158,12 @@
     <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Network\HttpComm.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="CBase64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Json\json_reader.cpp">
       <Filter>Source Files\Json</Filter>
     </ClCompile>
@@ -166,12 +172,6 @@
     </ClCompile>
     <ClCompile Include="Json\json_writer.cpp">
       <Filter>Source Files\Json</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\HttpComm.cpp">
-      <Filter>Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="CBase64.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
