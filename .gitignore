@@ -1,4 +1,13 @@
-﻿ipch
-*.sdf
-Debug
-Release
+/GHook/ipch
+/Paperless/Debug
+/Paperless/Release
+/Paperless/Paperless/Debug
+/Paperless/Paperless/Release
+/Paperless/Paperless.sdf
+/PaperlessPrepare/Debug
+/PaperlessPrepare/ipch
+/PaperlessPrepare/PaperlessPrepare/Debug
+/PaperlessPrepare/PaperlessPrepare/Release
+/PaperlessPrepare/PaperlessPrepare.sdf
+/PaperlessRestart/Debug
+/PaperlessRestart/Release
