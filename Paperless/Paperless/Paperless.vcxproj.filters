@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="Paperless.htm" />
     <None Include="res\Paperless.rc2">
       <Filter>Resource Files</Filter>
     </None>
@@ -95,6 +94,7 @@
     <None Include="Json\json_valueiterator.inl">
       <Filter>Header Files\Json</Filter>
     </None>
+    <None Include="..\Debug\PaperlessWelcome.htm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Paperless.h">
@@ -247,6 +247,9 @@
     <ClInclude Include="Network\SocketComm.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="MyHtmlView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Paperless.cpp">
@@ -320,6 +323,9 @@
     </ClCompile>
     <ClCompile Include="Network\SocketComm.cpp">
       <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="MyHtmlView.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

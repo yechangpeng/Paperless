@@ -47,7 +47,7 @@
 #define WM_HTML_SHOW  WM_USER + 103 //收到url后显示///////
 #define WM_SCREENDLG_MSG  WM_USER + 104 //收到截屏窗口消息
 #define WM_CONTINUE_INPUT  WM_USER + 105 //收到截屏窗口消息
-#define IDD_STATIC  WM_USER + 106 //收到截屏窗口消息
+#define WM_HTML_RESIZE  WM_USER + 106 // 收到窗口大小改变消息
 
 #define RECOGNIZE_PICTURE_FAILED "1-error"
 #define QR_CODE_NOT_EXIST "2-error"
@@ -55,7 +55,7 @@
 
 
 
-#include <afxdhtml.h>        // HTML 对话框
+#include <afxhtml.h>
 
 
 #ifdef _UNICODE

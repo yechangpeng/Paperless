@@ -4,6 +4,7 @@
 #include "ManualInputDlg.h"
 #include "SettingDlg.h"
 #include "CBaseReadIDCard.h"
+#include "MyHtmlView.h"
 
 #pragma once
 
@@ -29,6 +30,8 @@ protected:
 	virtual BOOL OnInitDialog();
 	// 处理系统命令函数
 	virtual void OnSysCommand( UINT nID, LPARAM lParam);
+	// 窗口大小改变响应函数
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	// 创建对话框
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	// ??
@@ -69,10 +72,6 @@ protected:
 	NOTIFYICONDATA m_nid;
 	// 定义托盘菜单
 	CMenu m_menu;
-	// 是否是第一次左键双击托盘菜单
-	bool isFirstDbClickMenu;
-	// 上次退出时窗口是否是最大化状态
-	bool isLastTimeExitZoomed;
 
 public:
 	// 身份证识读仪设备编号
@@ -87,10 +86,16 @@ public:
 	CManualInputDlg *pInputDlg;
 	// 设置窗口
 	SettingDlg *pSettingDlg;
+	// 网页浏览器窗口
+	CMyHtmlView *pMyHtmlView;
 	// 身份证识读器实体类，多态
 	CBaseReadIDCardInfo *pBaseReadIDCardInfo;
 	// 高拍仪摄像头实体类，多态
 	CBaseSaveDeskPic *pBaseSaveCameraPic;
+	// 是否是第一次左键双击托盘菜单
+	bool isFirstDbClickMenu;
+	// 上次退出时窗口是否是最大化状态
+	bool isLastTimeExitZoomed;
 
 public:
 	// 保存主窗口位置到配置文件中，供下次启动时恢复

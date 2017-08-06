@@ -100,6 +100,9 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\Debug\PaperlessWelcome.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="Curl\curlbuild.h.cmake" />
     <None Include="Curl\curlbuild.h.in" />
     <None Include="Curl\Makefile.am" />
@@ -107,9 +110,6 @@
     <None Include="Json\json_internalarray.inl" />
     <None Include="Json\json_internalmap.inl" />
     <None Include="Json\json_valueiterator.inl" />
-    <None Include="Paperless.htm">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="ReadMe.txt" />
     <None Include="res\arrow_m.cur" />
     <None Include="res\back.bmp" />
@@ -157,6 +157,7 @@
     <ClInclude Include="Json\writer.h" />
     <ClInclude Include="ManualInputDlg.h" />
     <ClInclude Include="MyEdit.h" />
+    <ClInclude Include="MyHtmlView.h" />
     <ClInclude Include="MyTracker.h" />
     <ClInclude Include="MyTTrace.h" />
     <ClInclude Include="Network\HttpComm.h" />
@@ -187,6 +188,7 @@
     <ClCompile Include="Json\json_writer.cpp" />
     <ClCompile Include="ManualInputDlg.cpp" />
     <ClCompile Include="MyEdit.cpp" />
+    <ClCompile Include="MyHtmlView.cpp" />
     <ClCompile Include="MyTracker.cpp" />
     <ClCompile Include="MyTTrace.cpp" />
     <ClCompile Include="Network\HttpComm.cpp" />
@@ -214,4 +216,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="Paperless.rc" _x007B_8856F961-340A-11D0-A96B-00C04FD705A2_x007D_="CWeb_browser" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

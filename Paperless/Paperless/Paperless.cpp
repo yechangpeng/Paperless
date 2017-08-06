@@ -35,6 +35,7 @@ CPaperlessApp::CPaperlessApp()
 	m_hwndDlg = NULL;
 	m_pHttpThread = NULL;
 	bIsHttpThreadRun = FALSE;
+	nSystemBit = 0;
 }
 
 
@@ -143,6 +144,9 @@ BOOL CPaperlessApp::InitInstance()
 	// 删除临时目录下超过 M天 的文件，配置文件获取清理的天数，获取不到默认保留7天的日志（不包括当天）
 	//PreCleanUpFiles();
 
+	// 设置IE的版本
+	//SetIEVersion();
+
 	// 启动应用程序的消息泵。
 	return TRUE;
 }
@@ -166,33 +170,35 @@ int CPaperlessApp::ExitInstance()
 // 设置开机启动
 BOOL CPaperlessApp::SetAutoRun()
 {
+	GtWriteTrace(30, "%s:%d: 开始设置开机启动......", __FUNCTION__, __LINE__);
+	HKEY rootKeyDir = HKEY_LOCAL_MACHINE;
 	char subKeyDir[] = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 	char sValue[256] = {0};
 
 	// 程序名称，key值
-	char sMyAppName[] = "XXbgService";
-	if (!MyReadRegedit(subKeyDir, sMyAppName, sValue, 256))
+	char sMyAppName[] = "Paperless";
+	if (!MyReadRegedit(rootKeyDir, subKeyDir, sMyAppName, sValue, 256, REG_SZ))
 	{
 		// 读取注册表信息失败，设置开机启动
 		char pFileName[MAX_PATH] = {0};
 		// 得到程序自身的全路径
 		DWORD dwRet = GetModuleFileName(NULL, pFileName, MAX_PATH);
-		if (!MyWriteRegedit(subKeyDir, sMyAppName, pFileName))
+		if (!MyWriteRegedit(rootKeyDir, subKeyDir, sMyAppName, pFileName, REG_SZ))
 		{
-			GtWriteTrace(30, "[XXbgService]SetAutoRun() 设置开机启动失败！");
+			GtWriteTrace(30, "%s:%d: \t设置开机启动失败！", __FUNCTION__, __LINE__);
 			::MessageBox(NULL, "设置开机自启失败！", "警告", MB_OK);
 		}
 		else
 		{
-			GtWriteTrace(30, "[XXbgService]SetAutoRun() 设置开机启动成功！");
+			GtWriteTrace(30, "%s:%d: \t设置开机启动成功！", __FUNCTION__, __LINE__);
 			::MessageBox(NULL, "设置开机自启成功！", "提示", MB_OK);
 		}
 	}
 	else
 	{
-		GtWriteTrace(30, "[XXbgService]SetAutoRun() 已设置开机启动，应用程序位置：%s", sValue);
+		GtWriteTrace(30, "%s:%d: \t已设置开机启动，应用程序位置：%s", __FUNCTION__, __LINE__, sValue);
 	}
-
+	GtWriteTrace(30, "%s:%d: 设置开机启动结束\n", __FUNCTION__, __LINE__);
 	return TRUE;
 }
 
@@ -240,11 +246,13 @@ BOOL CPaperlessApp::PreCleanUpFiles()
 // 清理sDir目录下超过nDay的文件
 BOOL CPaperlessApp::CleanUpFiles(CString sDir, int nDay)
 {
+	GtWriteTrace(30, "%s:%d: 开始清理sDir目录下过期文件......", __FUNCTION__, __LINE__);
 	if (sDir.IsEmpty() || nDay <= 0)
 	{
+		GtWriteTrace(30, "%s:%d: 入参检查失败！\n.", __FUNCTION__, __LINE__);
 		return FALSE;
 	}
-	GtWriteTrace(30, "[XXbgService]CleanUpFiles() 即将清理目录[%s]下超过[%d]天的文件", sDir.GetBuffer(), nDay);
+	GtWriteTrace(30, "%s:%d: \t即将清理目录[%s]下超过[%d]天的文件", __FUNCTION__, __LINE__, sDir.GetBuffer(), nDay);
 	// 时间差
 	double lDiffTime = 0.00;
 	// 临时文件保存时间，秒为单位
@@ -262,14 +270,14 @@ BOOL CPaperlessApp::CleanUpFiles(CString sDir, int nDay)
     time(&nowTime);
 	// 转化为日常日期格式
 	localtime_s(pNowTime, &nowTime);
-	GtWriteTrace(30, "[XXbgService]CleanUpFiles() 当前时间[%04d-%02d-%02d %02d:%02d:%02d]", 
+	GtWriteTrace(30, "%s:%d: \t当前时间[%04d-%02d-%02d %02d:%02d:%02d]", __FUNCTION__, __LINE__, nDay, 
 		pNowTime->tm_year + 1900, pNowTime->tm_mon + 1, pNowTime->tm_mday, pNowTime->tm_hour,
 		pNowTime->tm_min, pNowTime->tm_sec);
 	// 日期转换到当天 0时0分0秒
 	pNowTime->tm_hour = 0;
 	pNowTime->tm_min = 0;
 	pNowTime->tm_sec = 0;
-	GtWriteTrace(30, "[XXbgService]CleanUpFiles() 当天零时时间[%04d-%02d-%02d %02d:%02d:%02d]",
+	GtWriteTrace(30, "%s:%d: \t当天零时时间[%04d-%02d-%02d %02d:%02d:%02d]", __FUNCTION__, __LINE__, nDay, 
 		pNowTime->tm_year + 1900, pNowTime->tm_mon + 1, pNowTime->tm_mday, pNowTime->tm_hour,
 		pNowTime->tm_min, pNowTime->tm_sec);
 	// 日常日期格式转换成日历时间（秒为单位）
@@ -297,7 +305,7 @@ BOOL CPaperlessApp::CleanUpFiles(CString sDir, int nDay)
 			//GtWriteTrace(30, "[XXbgService]CleanUpFiles() 查询文件：[%s]", sFileName.GetBuffer());
 			if (FALSE == GetFileAttributes(&stat, sFilePath))
 			{
-				GtWriteTrace(30, "[XXbgService]CleanUpFiles()   获取文件[%d]创建时间失败！", sFileName.GetBuffer());
+				GtWriteTrace(30, "%s:%d: \t获取文件[%d]创建时间失败！", __FUNCTION__, __LINE__, sFileName.GetBuffer());
 				continue;
 			}
 			// 计算时间差值，判断是否需要删除(当天零点减去文件创建时间的值，是否超过nDay天)
@@ -305,30 +313,134 @@ BOOL CPaperlessApp::CleanUpFiles(CString sDir, int nDay)
 			struct tm *pTmpTime = &tmpTime;
 			// 转化为日常日期格式
 			localtime_s(pTmpTime, &stat.st_ctime);
-			//GtWriteTrace(30, "[XXbgService]CleanUpFiles()   文件创建时间[%04d-%02d-%02d %02d:%02d:%02d]", 
-			//	pTmpTime->tm_year + 1900, pTmpTime->tm_mon + 1, pTmpTime->tm_mday, pTmpTime->tm_hour, 
-			//	pTmpTime->tm_min, pTmpTime->tm_sec);
 			lDiffTime = difftime(beginTime, stat.st_ctime);
-			//GtWriteTrace(30, "[XXbgService]CleanUpFiles()   时间差：%lf", lDiffTime);
 			if (lDiffTime > lSaveDays)
 			//if (lDiffTime > 120)
 			{
 				// 超过设置的保存时间，删除此文件
 				if (DeleteFile(sFilePath))
 				{
-					GtWriteTrace(30, "[XXbgService]CleanUpFiles()   清理文件[%s]成功！", sFileName.GetBuffer());
+					GtWriteTrace(30, "%s:%d: \t清理文件[%s]成功！", __FUNCTION__, __LINE__, sFileName.GetBuffer());
 				}
 				else
 				{
-					GtWriteTrace(30, "[XXbgService]CleanUpFiles()   清理文件[%s]失败！", sFileName.GetBuffer());
+					GtWriteTrace(30, "%s:%d: \t清理文件[%s]失败！", __FUNCTION__, __LINE__, sFileName.GetBuffer());
 				}
 			}
 		}
 	}
+	GtWriteTrace(30, "%s:%d: 清理sDir目录下过期文件正常退出\n", __FUNCTION__, __LINE__);
 	return true;
 }
 
-// CXXbgServiceApp 消息处理程序
+
+// 通过写注册表，设置本程序启动的IE版本
+BOOL CPaperlessApp::SetIEVersion()
+{
+	GtWriteTrace(30, "%s:%d: 进入设置IE版本函数......", __FUNCTION__, __LINE__);
+	int nIEVersion = 0;
+	// 注册表查询当前IE最高版本
+	HKEY rootKey = HKEY_LOCAL_MACHINE;
+	char subKeyIEVersion[] = "SOFTWARE\\Microsoft\\Internet Explorer\\Version Vector";
+	char keyNameIE[] = "IE";
+	char keyValueIE[256] = {0};
+	if (MyReadRegedit(rootKey, subKeyIEVersion, keyNameIE, keyValueIE, sizeof(keyValueIE), REG_SZ))
+	{
+		nIEVersion = atoi(keyValueIE) * 1000;
+		GtWriteTrace(30, "%s:%d: \t注册表查询到当前IE版本[%s]，设置[%d]\n", __FUNCTION__, __LINE__, keyValueIE, nIEVersion);
+	}
+	else
+	{
+		nIEVersion = 6 * 1000;
+		GtWriteTrace(30, "%s:%d: \t注册表查询当前IE版本失败，设置默认版本：IE6，设置[%d]\n", __FUNCTION__, __LINE__, nIEVersion);
+	}
+
+	// 设置IE版本键值
+	// 首先检查注册表是否已经存在值
+	char subKeyWrite[] = "SOFTWARE\\Microsoft\\Internet Explorer\\MAIN\\FeatureControl\\FEATURE_BROWSER_EMULATION";
+	// 程序名称，key名称
+	char sMyAppName[] = "Paperless.exe";
+	DWORD sValue = 0;
+
+	// 未设置键值 或者 设置了键值，但不为当前IE最新版本
+	if ( (!MyReadRegedit(rootKey, subKeyWrite, sMyAppName, (void *)&sValue, sizeof(DWORD), REG_DWORD)) && (sValue != nIEVersion) )
+	{
+		// 不存在该键值则添加
+		if (!MyWriteRegedit(rootKey, subKeyWrite, sMyAppName, (void *)&nIEVersion, REG_DWORD))
+		{
+			GtWriteTrace(30, "%s:%d: \t设置IE版本[%s]失败！\n", __FUNCTION__, __LINE__, "FEATURE_BROWSER_EMULATION");
+		}
+		else
+		{
+			GtWriteTrace(30, "%s:%d: \t设置IE版本[%s]成功！\n", __FUNCTION__, __LINE__, "FEATURE_BROWSER_EMULATION");
+		}
+	}
+	else
+	{
+		GtWriteTrace(30, "%s:%d: \t已设置IE版本[%d]\n", __FUNCTION__, __LINE__, sValue);
+	}
+
+	// 设置其他键值
+	if (SetIEVersionChild("FEATURE_ACTIVEX_REPURPOSEDETECTION", 1) == false || 
+		SetIEVersionChild("FEATURE_BLOCK_LMZ_IMG", 1) == false || 
+		SetIEVersionChild("FEATURE_BLOCK_LMZ_OBJECT", 1) == false || 
+		SetIEVersionChild("FEATURE_BLOCK_LMZ_SCRIPT", 1) == false || 
+		SetIEVersionChild("FEATURE_ENABLE_SCRIPT_PASTE_URLACTION_IF_PROMPT", 1) == false || 
+		SetIEVersionChild("FEATURE_LOCALMACHINE_LOCKDOWN", 1) == false ||
+		SetIEVersionChild("FEATURE_GPU_RENDERING", 1) == false || 
+		SetIEVersionChild("FEATURE_Cross_Domain_Redirect_Mitigation", 1) == false )
+	{
+		GtWriteTrace(30, "%s:%d: \t子键设置失败！", __FUNCTION__, __LINE__);
+	}
+
+
+	GtWriteTrace(30, "%s:%d: 设置IE版本函数正常退出\n", __FUNCTION__, __LINE__);
+	return TRUE;
+}
+
+
+// 写注册表，设置IE版本
+BOOL CPaperlessApp::SetIEVersionChild(const char *pKeyName, int pKeyValue)
+{
+	GtWriteTrace(30, "%s:%d: 进入设置IE版本其他key函数......", __FUNCTION__, __LINE__, pKeyName);
+	if (pKeyName == false)
+	{
+		GtWriteTrace(30, "%s:%d: 入参检查失败！\n", __FUNCTION__, __LINE__, pKeyName);
+		return FALSE;
+	}
+	// 首先检查注册表是否已经存在值
+	HKEY rootKey = HKEY_LOCAL_MACHINE;
+	CString subKeyDir = "SOFTWARE\\Microsoft\\Internet Explorer\\MAIN\\FeatureControl\\";
+	subKeyDir += pKeyName;
+
+	// 首先创建子key，因为可能其不存在
+	MyAddRegedit(rootKey, subKeyDir.GetBuffer());
+
+	// 程序名称，key值
+	char sMyAppName[] = "Paperless.exe";
+	DWORD sValue = 0;
+
+	// 
+	if (!MyReadRegedit(rootKey, subKeyDir.GetBuffer(), sMyAppName, (void *)&sValue, sizeof(DWORD), REG_DWORD))
+	{
+		// 不存在该键值则添加
+		if (!MyWriteRegedit(rootKey, subKeyDir.GetBuffer(), sMyAppName, (void *)&pKeyValue, REG_DWORD))
+		{
+			GtWriteTrace(30, "%s:%d: \t设置key[%s]失败！\n", __FUNCTION__, __LINE__, pKeyName);
+			return FALSE;
+		}
+		else
+		{
+			GtWriteTrace(30, "%s:%d: \t设置key[%s]成功！", __FUNCTION__, __LINE__, pKeyName);
+		}
+	}
+	else
+	{
+		GtWriteTrace(30, "%s:%d: \t已存在此键[%s], 值：%d", __FUNCTION__, __LINE__, pKeyName, sValue);
+	}
+	GtWriteTrace(30, "%s:%d: 设置IE版本其他key函数正常退出！\n", __FUNCTION__, __LINE__, pKeyName);
+	return TRUE;
+}
 
 //********************************************************************************
 #define SHIFTED 0x8000 

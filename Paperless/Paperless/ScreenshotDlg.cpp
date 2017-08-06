@@ -658,7 +658,7 @@ BOOL CScreenshotDlg::SaveBitmapToFile(HBITMAP hBitmap, LPCTSTR lpFileName )
 //显示操作提示信息
 void CScreenshotDlg::DrawTip()
 {
-	GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
     //得当前坐标像素,
 	CPoint pt;
 	GetCursorPos(&pt);
@@ -692,7 +692,7 @@ void CScreenshotDlg::DrawTip()
 		strTemp="\r\n ·用鼠标左键调整截取范围的\r\n 大小和位置\r\n\r\n ·截取范围内双击鼠标左键保\r\n 存图像，结束操作\r\n\r\n ·点击鼠标右键重新选择";
 	}
 	string+=strTemp;
-	GtWriteTrace(30, "%s:%d  [%s]", __FUNCTION__, __LINE__, string.GetBuffer());
+	//GtWriteTrace(30, "%s:%d  [%s]", __FUNCTION__, __LINE__, string.GetBuffer());
 	//显示到编缉框中,操作提示窗口
 	m_tipEdit.SetWindowText(string);
 }
@@ -815,7 +815,7 @@ void CScreenshotDlg::PaintWindow()
 //改变操作提示窗口当RGB值
 void CScreenshotDlg::ChangeRGB()
 {
-	GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d", __FUNCTION__, __LINE__);
 	//保存旧的RGB值字符串
 	static CString strOld("");
 

@@ -752,35 +752,43 @@ char* MyGetLastError(char *sLastMsg, int strLen)
 }
 
 
-
-// 读取注册表信息
-BOOL MyReadRegedit(char *subKeyDir, char *subKey, char *subValue, int subValueLen)
+/** 功能：读取注册表信息，读取REG_DWORD，REG_SZ类型的数据
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ *		pKeyName：key名称
+ *		pKeyValue：获取到的值
+ *		nKeyValueLen：获取到值的长度
+ *		pKeyValueType：要获取键值的类型
+ * 返回值：TRUE-获取成功，FALSE-获取失败
+ **/
+BOOL MyReadRegedit(HKEY pRootKey, char *pSubKey, char *pKeyName, void *pKeyValue, int nKeyValueLen, DWORD pKeyValueType)
 {
-	if (subKeyDir == NULL || subKey == NULL || subValue == NULL || subValueLen <= 0)
+	if (pRootKey == NULL || pSubKey == NULL || pKeyName == NULL || pKeyValue == NULL || nKeyValueLen <= 0 || pKeyValueType < 0)
 	{
 		return FALSE;
 	}
 	HKEY hKey;
 	//打开启动项Key
-	long lRet = RegOpenKeyEx(HKEY_LOCAL_MACHINE, (LPCTSTR)subKeyDir, 0, KEY_READ, &hKey);
+	long lRet = RegOpenKeyEx(pRootKey, (LPCTSTR)pSubKey, 0, KEY_READ, &hKey);
 	if(lRet == ERROR_SUCCESS)
 	{
-		DWORD keyType = REG_SZ;//定义数据类型
-		DWORD DataLen = subValueLen;//定义数据长度
-		lRet=RegQueryValueEx(hKey, subKey, NULL, &keyType, (BYTE *)subValue, &DataLen);
+		DWORD keyType = pKeyValueType;//定义数据类型
+		DWORD DataLen = nKeyValueLen;//定义数据长度
+		GtWriteTrace(30, "%s:%d: 准备读取注册表键值[%s][%s]......", __FUNCTION__, __LINE__, pSubKey, pKeyName);
+		lRet=RegQueryValueEx(hKey, pKeyName, NULL, &keyType, (BYTE *)pKeyValue, &DataLen);
 		if(lRet!=ERROR_SUCCESS)
 		{
 			// 查询注册表失败，获取错误信息
 			char sLastMsg[256] = {0};
 			MyGetLastError(sLastMsg, 256);
-			GtWriteTrace(30, "[XXbgService]MyReadRegedit() 读取注册表信息失败！ ret=[%d], GetLastError=[%d][%s]", lRet, GetLastError(), sLastMsg);
+			GtWriteTrace(30, "%s:%d: 读取注册表键值失败！ ret=[%d], GetLastError=[%d][%s]", __FUNCTION__, __LINE__, lRet, GetLastError(), sLastMsg);
 			//关闭注册表
 			RegCloseKey(hKey);
 			return FALSE;
 		}
 		else
 		{
-			GtWriteTrace(30, "[XXbgService]MyWriteRegedit() 读取注册表信息成功！");
+			GtWriteTrace(30, "%s:%d: 读取注册表键值成功！", __FUNCTION__, __LINE__);
 			//关闭注册表
 			RegCloseKey(hKey);
 			return TRUE;
@@ -791,40 +799,62 @@ BOOL MyReadRegedit(char *subKeyDir, char *subKey, char *subValue, int subValueLe
 		// 打开注册表失败，获取错误信息
 		char sLastMsg[256] = {0};
 		MyGetLastError(sLastMsg, 256);
-		GtWriteTrace(30, "[XXbgService]MyWriteRegedit() 打开注册表失败！ ret=[%d], GetLastError=[%d][%s]", lRet, GetLastError(), sLastMsg);
+		GtWriteTrace(30, "%s:%d: 打开注册表失败！ ret=[%d], GetLastError=[%d][%s]", __FUNCTION__, __LINE__, lRet, GetLastError(), sLastMsg);
 		return FALSE;
 	}
 }
 
 
-// 写注册表信息
-BOOL MyWriteRegedit(char *subKeyDir, char *subKey, char *subValue)
+/** 功能：写注册表信息，写REG_DWORD，REG_SZ类型的数据
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ *		pKeyName：待写入key名称
+ *		pKeyValue：待写入key的值
+ *		pKeyValueType：待写入key值的类型
+ * 返回值：TRUE-写入成功，FALSE-写入失败
+ **/
+BOOL MyWriteRegedit(HKEY pRootKey, char *pSubKey, char *pKeyName, void *pKeyValue, DWORD pKeyValueType)
 {
-	if (subKeyDir == NULL || subKey == NULL || subValue == NULL)
+	if (pRootKey == NULL || pSubKey == NULL || pKeyName == NULL || pKeyValue == NULL || pKeyValueType < 0)
 	{
 		return FALSE;
 	}
+	// 判断写入类型，计算写入长度
+	DWORD nKeyValue = 0;
+	if (pKeyValueType == REG_DWORD)
+	{
+		nKeyValue = sizeof(DWORD);
+	}
+	else if (pKeyValueType == REG_SZ)
+	{
+		nKeyValue = (DWORD)strlen((const char*)pKeyValue);
+	}
+	else
+	{
+		return FALSE;
+	}
+
 	HKEY hKey;
-	//打开启动项Key
-	long lRet = RegOpenKeyEx(HKEY_LOCAL_MACHINE, (LPCTSTR)subKeyDir, 0, KEY_WRITE, &hKey);
+	// 打开启动项Key
+	long lRet = RegOpenKeyEx(pRootKey, (LPCTSTR)pSubKey, 0, KEY_WRITE, &hKey);
 	if(lRet == ERROR_SUCCESS)
 	{
-		//添加一个子Key,并设置值
-		lRet = RegSetValueEx(hKey, subKey, 0, REG_SZ, (BYTE *)subValue, (DWORD)strlen(subValue));
+		// 添加一个子Key,并设置值
+		lRet = RegSetValueEx(hKey, pKeyName, 0, pKeyValueType, (BYTE *)pKeyValue, nKeyValue);
 		if(lRet != ERROR_SUCCESS)
 		{
 			// 写入注册表失败，获取错误信息
 			char sLastMsg[256] = {0};
 			MyGetLastError(sLastMsg, 256);
-			GtWriteTrace(30, "[XXbgService]MyWriteRegedit() 写入注册表失败！ ret=[%d], GetLastError=[%d][%s]", lRet, GetLastError(), sLastMsg);
-			//关闭注册表
+			GtWriteTrace(30, "%s:%d: 写入注册表键值失败！ ret=[%d], GetLastError=[%d][%s]", __FUNCTION__, __LINE__, lRet, GetLastError(), sLastMsg);
+			// 关闭注册表
 			RegCloseKey(hKey);
 			return FALSE;
 		}
 		else
 		{
-			GtWriteTrace(30, "[XXbgService]MyWriteRegedit() 写入注册表成功!");
-			//关闭注册表
+			GtWriteTrace(30, "%s:%d: 写入注册表键值成功！", __FUNCTION__, __LINE__);
+			// 关闭注册表
 			RegCloseKey(hKey);
 			return TRUE;
 		}
@@ -834,10 +864,94 @@ BOOL MyWriteRegedit(char *subKeyDir, char *subKey, char *subValue)
 		// 打开注册表失败，获取错误信息
 		char sLastMsg[256] = {0};
 		MyGetLastError(sLastMsg, 256);
-		GtWriteTrace(30, "[XXbgService]MyWriteRegedit() 打开注册表失败！ ret=[%d], GetLastError=[%d][%s]", lRet, GetLastError(), sLastMsg);
+		GtWriteTrace(30, "%s:%d: 打开注册表失败！ ret=[%d], GetLastError=[%d][%s]", __FUNCTION__, __LINE__, lRet, GetLastError(), sLastMsg);
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+/** 功能：新增注册表键
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ * 返回值：TRUE-写入成功，FALSE-写入失败
+ **/
+BOOL MyAddRegedit(HKEY pRootKey, char *pSubKey)
+{
+	if (pRootKey == NULL || pSubKey == NULL)
+	{
+		return FALSE;
+	}
+	HKEY hKey;
+	// 通过打开key项判断此键是否存在，存在则不需要创建
+	long lRet = RegOpenKeyEx(pRootKey, (LPCTSTR)pSubKey, 0, KEY_READ, &hKey);
+	if(lRet == ERROR_SUCCESS)
+	{
+		// 已经存在此键，则关闭注册表，退出程序
+		RegCloseKey(hKey);
+		GtWriteTrace(30, "%s:%d: 注册表键已存在，不需要新增！", __FUNCTION__, __LINE__);
+		return TRUE;
+	}
+	else
+	{
+		// 打开注册表失败，不存在键，则创建
+		DWORD dwDisp;
+		lRet = RegCreateKeyEx(pRootKey, pSubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
+			NULL, &hKey, &dwDisp);
+		if (lRet == ERROR_SUCCESS)
+		{
+			// 创建键成功
+			GtWriteTrace(30, "%s:%d: 注册表键[%s]创建成功！", __FUNCTION__, __LINE__, pSubKey);
+			// 关闭注册表
+			RegCloseKey(hKey);
+			return TRUE;
+		}
+		else
+		{
+			// 创建键失败
+			GtWriteTrace(30, "%s:%d: 注册表键[%s]创建失败！", __FUNCTION__, __LINE__, pSubKey);
+			// 关闭注册表
+			RegCloseKey(hKey);
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+
+/** 功能：判断当前计算机是32位还是64位系统
+ * 返回值：64 - 是64位系统，32 - 32位系统，其他 - 获取失败
+ **/
+int GetSystemBit()
+{
+	HKEY rootKey = HKEY_LOCAL_MACHINE;
+	char subKeyWrite[] = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
+	char sKeyName[] = "PROCESSOR_ARCHITECTURE";
+	char sValue[32] = {0};
+	if (MyReadRegedit(rootKey, subKeyWrite, sKeyName, sValue, sizeof(sValue), REG_SZ))
+	{
+		// 获取到值，判断是什么系统
+		if (strcmp(sValue, "x86") == 0)
+		{
+			// 32位系统
+			return 32;
+		}
+		else if (strcmp(sValue, "AMD64") == 0 || strcmp(sValue, "IA64") == 0)
+		{
+			// 64位系统
+			return 64;
+		}
+		else
+		{
+			// 其他
+			return -2;
+		}
+	}
+	else
+	{
+		return -1;
+	}
+	return 0;
 }
 
 

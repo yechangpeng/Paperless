@@ -1,6 +1,7 @@
 #include "HttpComm.h"
 
 #include "../Paperless.h"
+#include "../PaperlessDlg.h"
 #include "../Curl/curl.h"
 #include "../utils.h"
 #include "../MyTTrace.h"
@@ -375,7 +376,7 @@ int AnalyzeData()
 		::MessageBoxA(NULL, "读取报文文件时分配内存失败！", "错误", MB_OK);
 		return -2;
 	}
-	memset(fileBuffer, 0, sizeof(fileBuffer));
+	memset(fileBuffer, 0, sizeof(char) * lSize + 1);
 	// 将文件拷贝到fileBuffer中
 	result = fread(fileBuffer, 1, lSize, fp);
 	if (result != lSize)
@@ -397,10 +398,10 @@ int AnalyzeData()
 
 	GtWriteTrace(30, "[%s][%d]: fileBuffer [%s]", __FUNCTION__, __LINE__, fileBuffer);
 	char buffer[128] = {0};
-	//sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
+	sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"1\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"2\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
-	// string recvBuff = (char *)fileBuffer;
+	//string recvBuff = (char *)fileBuffer;
 	string recvBuff = (char *)buffer;
 	// 解析服务端返回的json类型数据，获取交易类型
 	//json解析
@@ -422,6 +423,8 @@ int AnalyzeData()
 			code = value["code"].asString();
 			if (code != "")
 			{
+				// 主对话框
+				CPaperlessDlg* pPaperlessDlg = (CPaperlessDlg*)AfxGetApp()->m_pMainWnd;
 				// 获取返回信息
 				msg = value["msg"].asString();
 				// 获取url或者失败信息
@@ -445,9 +448,13 @@ int AnalyzeData()
 						memset(sendBuff, 0, sizeof(sendBuff));
 						// 赋值网址到全局变量中
 						memcpy(sendBuff, strUrl, strlen(strUrl));
+						// 如果输入流水号窗口存在且为显示状态，需要进行隐藏处理
+						if (pPaperlessDlg->pInputDlg != NULL && pPaperlessDlg->pInputDlg->IsWindowVisible())
+						{
+							pPaperlessDlg->pInputDlg->ShowWindow(SW_HIDE);
+						}
 						// 显示网页(发消息给指定窗口)
-						::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetActiveView()->GetSafeHwnd(),
-							WM_HTML_SHOW, (WPARAM)sendBuff, NULL);
+						::PostMessageA(pPaperlessDlg->pMyHtmlView->GetSafeHwnd(), WM_HTML_SHOW, (WPARAM)sendBuff, NULL);
 					}
 				}
 				else if(code.compare("1") == 0)
@@ -455,15 +462,13 @@ int AnalyzeData()
 					// 二维码图片识别失败
 					GtWriteTrace(30, "[%s][%d]二维码截图识别失败", __FUNCTION__, __LINE__);
 					// 发消息到主窗口处理
-					::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetSafeHwnd(),
-						WM_SCREENDLG_MSG, (WPARAM)RECOGNIZE_PICTURE_FAILED, NULL);
+					::PostMessageA(pPaperlessDlg->GetSafeHwnd(), WM_SCREENDLG_MSG, (WPARAM)RECOGNIZE_PICTURE_FAILED, NULL);
 				}else if(code.compare("2") == 0)
 				{
 					// 流水号不存在
 					GtWriteTrace(30, "[%s][%d]流水号不存在", __FUNCTION__, __LINE__);
 					// 发消息到主窗口处理
-					::PostMessageA(((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->GetSafeHwnd(),
-						WM_SCREENDLG_MSG, (WPARAM)QR_CODE_NOT_EXIST, NULL);
+					::PostMessageA(pPaperlessDlg->GetSafeHwnd(), WM_SCREENDLG_MSG, (WPARAM)QR_CODE_NOT_EXIST, NULL);
 				}
 				else
 				{
@@ -471,6 +476,12 @@ int AnalyzeData()
 					GtWriteTrace(30, "[%s][%d]服务端返回未定义交易类型=[%d]", __FUNCTION__, __LINE__, code.c_str());
 					::MessageBoxA(NULL, "服务端返回未定义交易类型！", "错误", MB_OK);
 				}
+			}
+			else
+			{
+				// 未返回交易类型
+				GtWriteTrace(30, "[%s][%d]服务端未返回交易类型！", __FUNCTION__, __LINE__);
+				::MessageBoxA(NULL, "服务端未返回交易类型！", "错误", MB_OK);
 			}
 		}
 		else

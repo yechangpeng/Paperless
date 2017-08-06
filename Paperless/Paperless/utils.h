@@ -47,13 +47,38 @@ char* MyGetLastError(char *sLastMsg, int strLen);
 */
 int splitString(char *des, const char *src, int index);
 
-/* 读取注册表信息
-*/
-BOOL MyReadRegedit(char *subKeyDir, char *subKey, char *subValue, int subValueLen);
+/** 功能：读取注册表信息，读取REG_DWORD，REG_SZ类型的数据
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ *		pKeyName：key名称
+ *		pKeyValue：获取到的值
+ *		nKeyValueLen：获取到值的长度
+ *		pKeyValueType：要获取键值的类型
+ * 返回值：TRUE-获取成功，FALSE-获取失败
+ **/
+BOOL MyReadRegedit(HKEY pRootKey, char *pSubKey, char *pKeyName, void *pKeyValue, int nKeyValueLen, DWORD pKeyValueType);
 
-/* 写注册表信息
-*/
-BOOL MyWriteRegedit(char *subKeyDir, char *subKey, char *subValue);
+/** 功能：写注册表信息，写REG_DWORD，REG_SZ类型的数据
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ *		pKeyName：待写入key名称
+ *		pKeyValue：待写入key的值
+ *		pKeyValueType：待写入key值的类型
+ * 返回值：TRUE-写入成功，FALSE-写入失败
+ **/
+BOOL MyWriteRegedit(HKEY pRootKey, char *pSubKey, char *pKeyName, void *pKeyValue, DWORD pKeyValueType);
+
+/** 功能：新增注册表键
+ * 入参：pRootKey：根key
+ *		pSubKey：子key
+ * 返回值：TRUE-写入成功，FALSE-写入失败
+ **/
+BOOL MyAddRegedit(HKEY pRootKey, char *pSubKey);
+
+/** 功能：判断当前计算机是32位还是64位系统，（暂时不使用此函数）
+ * 返回值：64 - 是64位系统，32 - 32位系统，其他 - 获取失败
+ **/
+int GetSystemBit();
 
 /* 获取sFilePath的文件信息存入pStat中
 */

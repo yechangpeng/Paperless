@@ -38,6 +38,7 @@ static UINT indicators[] =
 // 消息映射函数
 BEGIN_MESSAGE_MAP(CPaperlessDlg, CDialogEx)
 	ON_WM_CREATE()
+	ON_WM_SIZE()
 	ON_MESSAGE(WM_TRAYNOTIFY, OnTrayNotify)
 	ON_MESSAGE(WM_SCREENSHOT, OnScreenshot)
 	ON_MESSAGE(WM_SCREENDLG_MSG, OnScreenDlgMessage)
@@ -60,8 +61,8 @@ CPaperlessDlg::CPaperlessDlg(CWnd* pParent /*=NULL*/)
 	pScreenshotDlg = NULL;
 	pInputDlg = NULL;
 	pSettingDlg = NULL;
+	pMyHtmlView = NULL;
 	pBaseReadIDCardInfo = NULL;
-	pBaseSaveCameraPic = NULL;
 	pBaseSaveCameraPic = NULL;
 	nReadIDDevice = -1;
 	nDeskCameraDevice = -1;
@@ -72,7 +73,7 @@ CPaperlessDlg::CPaperlessDlg(CWnd* pParent /*=NULL*/)
 
 CPaperlessDlg::~CPaperlessDlg()
 {
-	GtWriteTrace(30, "%s:%d: ~CPaperlessDlg!", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d: ~CPaperlessDlg!", __FUNCTION__, __LINE__);
 	// 清空托盘图标
 	if(m_nid.hIcon)
 		::DestroyIcon(m_nid.hIcon);
@@ -113,7 +114,7 @@ CPaperlessDlg::~CPaperlessDlg()
 // 点击托盘菜单的退出程序，
 void CPaperlessDlg::OnQuit()
 {
-	GtWriteTrace(30, "%s:%d: OnQuit!", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d: OnQuit!", __FUNCTION__, __LINE__);
 	// 退出程序，保存窗口位置到配置文件中
 	SaveFrmPosToFile();
 	// 清空托盘图标
@@ -163,7 +164,7 @@ void CPaperlessDlg::DoDataExchange(CDataExchange* pDX)
 // 创建对话框
 int CPaperlessDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	GtWriteTrace(30, "%s:%d: OnCreate!", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d: OnCreate!", __FUNCTION__, __LINE__);
 	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
@@ -207,7 +208,7 @@ int CPaperlessDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 // 
 BOOL CPaperlessDlg::OnInitDialog()
 {
-	GtWriteTrace(30, "%s:%d: OnInitDialog!", __FUNCTION__, __LINE__);
+	//GtWriteTrace(30, "%s:%d: OnInitDialog!", __FUNCTION__, __LINE__);
 	CDialogEx::OnInitDialog();
 
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
@@ -222,10 +223,22 @@ BOOL CPaperlessDlg::OnInitDialog()
 	/************* 从配置文件中恢复上次退出窗口位置 ***************/ 
 	InitFrmPosFromFile();
 
+
+	CStatic *pStatic = (CStatic *)GetDlgItem(IDC_STATIC_HTML);
+	//pStatic->set
+	pMyHtmlView = new CMyHtmlView();
+	pMyHtmlView->CreateFromStatic(pStatic, this);
+	//pMyHtmlView->Navigate2(_T("http://www.baidu.com"));
+	CString sWelcomePath = GetAppPath();
+	sWelcomePath += "\\PaperlessWelcome.htm";
+	pMyHtmlView->Navigate2(_T(sWelcomePath.GetBuffer()));
+
 	// 除非将焦点设置到控件，否则返回 TRUE
 	return TRUE;
 }
 
+
+/*********************** VS2010自动生成函数 *******************************/
 // 如果向对话框添加最小化按钮，则需要下面的代码
 //  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
 //  这将由框架自动完成。
@@ -253,12 +266,47 @@ void CPaperlessDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 }
-
 //当用户拖动最小化窗口时系统调用此函数取得光标
 //显示。
 HCURSOR CPaperlessDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+// CMainFrame 诊断
+
+#ifdef _DEBUG
+void CPaperlessDlg::AssertValid() const
+{
+	CDialogEx::AssertValid();
+}
+
+void CPaperlessDlg::Dump(CDumpContext& dc) const
+{
+	CDialogEx::Dump(dc);
+}
+#endif //_DEBUG
+/*********************** VS2010自动生成函数 *******************************/
+
+
+// 窗口大小改变响应函数
+void CPaperlessDlg::OnSize(UINT nType, int cx, int cy)
+{
+	//GtWriteTrace(30, "%s:%d: OnSize(%d, %d)!", __FUNCTION__, __LINE__, cx, cy);
+	CDialog::OnSize(nType, cx, cy);
+	if(nType==1) return;//最小化则什么都不做
+	// TODO: Add your message handler code here
+	CStatic *pStatic = (CStatic *)GetDlgItem(IDC_STATIC_HTML);
+	if (pStatic)
+	{
+		//GtWriteTrace(30, "%s:%d: 更新html窗口位置!", __FUNCTION__, __LINE__, cx, cy);
+		// 把编辑控件的大小设为(cx, cy)，位置不变
+		pStatic->MoveWindow(0, 0, cx, cy);
+		// 设置CStatic子控件 html 窗体大小，发送消息设置
+		CRect rect();
+		HWND hwnd = (pMyHtmlView)->GetSafeHwnd();
+		::PostMessageA(hwnd,
+			WM_HTML_RESIZE, NULL, MAKELPARAM((WORD)cx, (WORD)cy));
+	}
 }
 
 
@@ -302,7 +350,7 @@ void CPaperlessDlg::InitDevice()
 	}
 	else if (nDeskCameraDevice == 1)
 	{
-		pBaseSaveCameraPic = new CCentOneCamera(this);
+		//pBaseSaveCameraPic = new CCentOneCamera(this);
 	}
 	else if (nDeskCameraDevice == 2)
 	{
@@ -313,21 +361,6 @@ void CPaperlessDlg::InitDevice()
 		::MessageBox(NULL, "配置的高拍仪摄像头设备不存在！请检查！", "警告", MB_OK);
 	}
 }
-
-
-// CMainFrame 诊断
-
-#ifdef _DEBUG
-void CPaperlessDlg::AssertValid() const
-{
-	CDialogEx::AssertValid();
-}
-
-void CPaperlessDlg::Dump(CDumpContext& dc) const
-{
-	CDialogEx::Dump(dc);
-}
-#endif //_DEBUG
 
 
 // 保存主窗口位置到配置文件中
@@ -373,7 +406,7 @@ BOOL CPaperlessDlg::SaveFrmPosToFile()
 // 读取配置文件配置，恢复窗口位置
 BOOL CPaperlessDlg::InitFrmPosFromFile()
 {
-	GtWriteTrace(30, "%s:%d: InitFrmPosFromFile!", __FUNCTION__, __LINE__);
+	GtWriteTrace(30, "%s:%d: 初始化窗口位置开始......", __FUNCTION__, __LINE__);
 	// 左上角x坐标
 	int nWinXPos = 0;
 	// 左上角y坐标
@@ -410,7 +443,7 @@ BOOL CPaperlessDlg::InitFrmPosFromFile()
 	if (nWinXPos < 0 || nWinYPos < 0 || nWinWidth <= 0 || nWinHigh <= 0)
 	{
 		// 配置文件无数据，默认位置，屏幕右下方四分之一的位置
-		GtWriteTrace(30, "%s:%d: 默认位置设置，屏幕右下方四分之一!", __FUNCTION__, __LINE__);
+		GtWriteTrace(30, "%s:%d: \t默认位置，窗口在屏幕右下方四分之一!", __FUNCTION__, __LINE__);
 		// 获取任务栏位置，只考虑任务栏在底端的情况
 		CRect rect;
 		::GetWindowRect(::FindWindow(_T("Shell_TrayWNd"), NULL), &rect);
@@ -420,9 +453,10 @@ BOOL CPaperlessDlg::InitFrmPosFromFile()
 	else
 	{
 		// 设置下次显示的位置，按配置文件位置显示
-		GtWriteTrace(30, "%s:%d: 按配置文件位置设置!", __FUNCTION__, __LINE__);
+		GtWriteTrace(30, "%s:%d: \t按配置文件位置设置窗口位置!", __FUNCTION__, __LINE__);
 		this->SetWindowPos(&wndTop, nWinXPos, nWinYPos, nWinWidth, nWinHigh, SWP_HIDEWINDOW);
 	}
+	GtWriteTrace(30, "%s:%d: 初始化窗口位置正常退出。", __FUNCTION__, __LINE__);
 	return TRUE;
 }
 
@@ -570,11 +604,15 @@ LRESULT CPaperlessDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
 		// 第一次双击的处理，获取配置文件退出前是否是最大化，是则最大化显示
 		if (isFirstDbClickMenu && isLastTimeExitZoomed)
 		{
+			// 将第一次单击置为否
+			isFirstDbClickMenu = false;
 			// 第一次单击，且上次退出程序是最大化状态，恢复最大化
 			this->ShowWindow(SW_SHOWMAXIMIZED);
 		}
 		else
 		{
+			// 将第一次单击置为否
+			isFirstDbClickMenu = false;
 			if (this->IsZoomed())
 			{
 				// 最大化，恢复最大化
@@ -590,8 +628,6 @@ LRESULT CPaperlessDlg::OnTrayNotify(WPARAM wParam, LPARAM lParam)
 				this->ShowWindow(SW_SHOWNORMAL);
 			}
 		}
-		// 将第一次单击置为否
-		isFirstDbClickMenu = false;
 		break;  
 	}
 	return 0;

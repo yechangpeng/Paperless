@@ -9,6 +9,7 @@
 #endif
 
 #include "resource.h"		// 主符号
+#include "MyHtmlView.h"
 
 
 // CPaperlessApp:
@@ -28,6 +29,7 @@ public:
 
 
 public:
+	int nSystemBit;
 	HWND m_hwndDlg;
 	// 发送http报文线程
 	CWinThread *m_pHttpThread;
@@ -39,6 +41,10 @@ private:
 	BOOL PreCleanUpFiles();
 	// 清理sDir目录下超过nDay的文件
 	BOOL CleanUpFiles(CString sDir, int nDay);
+	// 通过写注册表，设置IE版本
+	BOOL SetIEVersion();
+	// 写注册表，设置IE版本
+	BOOL SetIEVersionChild(const char *pKeyName, int pKeyValue);
 
 	DECLARE_MESSAGE_MAP()
 };
