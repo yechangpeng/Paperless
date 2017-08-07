@@ -302,7 +302,6 @@ void CPaperlessDlg::OnSize(UINT nType, int cx, int cy)
 		// 把编辑控件的大小设为(cx, cy)，位置不变
 		pStatic->MoveWindow(0, 0, cx, cy);
 		// 设置CStatic子控件 html 窗体大小，发送消息设置
-		CRect rect();
 		HWND hwnd = (pMyHtmlView)->GetSafeHwnd();
 		::PostMessageA(hwnd,
 			WM_HTML_RESIZE, NULL, MAKELPARAM((WORD)cx, (WORD)cy));
@@ -350,7 +349,7 @@ void CPaperlessDlg::InitDevice()
 	}
 	else if (nDeskCameraDevice == 1)
 	{
-		//pBaseSaveCameraPic = new CCentOneCamera(this);
+		pBaseSaveCameraPic = new CCentOneCamera(this);
 	}
 	else if (nDeskCameraDevice == 2)
 	{

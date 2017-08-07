@@ -79,6 +79,7 @@ typedef struct S_MYPERSONINFO
 	int  iFlag;
 }MYPERSONINFO;
 
+
 /**
   * 身份证芯片信息读取基类
  **/
@@ -100,9 +101,11 @@ public:
 class CBaseSaveDeskPic
 {
 public:
-	CBaseSaveDeskPic(){}
-	virtual ~CBaseSaveDeskPic(){}
+	CBaseSaveDeskPic():F_AREA_RATE((float)2.213), F_HEIGHT_WIDTH_RATE((float)((21 * 1.0) / 17)){}
+	virtual ~CBaseSaveDeskPic() {}
 public:
+	const float F_AREA_RATE;
+	const float F_HEIGHT_WIDTH_RATE;
 	// 纯虚函数，高拍仪 文拍摄像头 获取身份证照片
 	virtual int MySaveDeskIDPic(const char *pSaveDesktopIDPicFilenm) = 0;
 	// 纯虚函数，高拍仪 环境摄像头 获取 人像照片

@@ -214,6 +214,7 @@ int CGeitCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 
 	//声明IplImage指针
 	IplImage* pFrame = NULL;
+	IplImage* pDestImg = NULL;
 	// 获取摄像头
 	CvCapture* pCapture = cvCreateCameraCapture(atoi(sEnvScanNo));
 	if (pCapture == NULL)
@@ -243,8 +244,26 @@ int CGeitCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 		cvReleaseCapture(&pCapture);
 		return 108;
 	}
-	// 保存原始图
-	cvSaveImage(pSaveEnvPicFilenm, pFrame);
+// 	CString sAppPath = GetAppPath();
+// 	sAppPath += "\\IDPicture\\EnvPictureTmp.jpg";
+// 	pFrame = cvLoadImage(sAppPath.GetBuffer(), CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
+	// 裁剪中心区域
+	pDestImg = GetCentreOfImage1(pFrame, F_AREA_RATE, F_HEIGHT_WIDTH_RATE);
+	if (pDestImg == NULL)
+	{
+		GtWriteTrace(30, "%s:%d: 裁剪人像中心区域失败！", __FUNCTION__, __LINE__);
+		// 保存原始图
+		cvSaveImage(pSaveEnvPicFilenm, pFrame);
+	}
+	else
+	{
+		GtWriteTrace(30, "%s:%d: 裁剪人像中心区域成功！", __FUNCTION__, __LINE__);
+		// 保存裁剪的图像
+		cvSaveImage(pSaveEnvPicFilenm, pDestImg);
+		// 释放
+		cvReleaseImage(&pDestImg);
+	}
+
 	// 释放摄像头
 	cvReleaseCapture(&pCapture);
 	return 0;

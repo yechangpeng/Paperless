@@ -22,3 +22,21 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest);
 * 返回值：旋转后的图像，为NULL表示失败
 **/
 IplImage* rotateImage(IplImage* pImgSrc, float fDegree);
+
+/** 
+* 功能：截取图像中心区域，按面积和宽高比例截取，图像从image中获取
+* 参数：pImgSrc：待截取的原图像
+*		fAreaRate：面积比例，大面积/小面积，比例需大于1
+*		fHeightWidthRate：高宽比，高/宽，比例需大于1
+* 返回值：截取后的图像，为NULL表示失败，不为空需要手动释放
+**/
+IplImage* GetCentreOfImage1(IplImage* pImgSrc, float fAreaRate, float fHeightWidthRate);
+
+/** 
+* 功能：截取图像中心区域，按面积和宽高比例截取，图像从图片文件中获取
+* 参数：pFilePath：待旋转的原图像的路径
+*		fAreaRate：面积比例，大面积/小面积，比例需大于1
+*		fHeightWidthRate：高宽比，高/宽，比例需大于1
+* 返回值：截取后的图像，为NULL表示失败，不为空需要手动释放
+**/
+IplImage* GetCentreOfImage2(const char *pFilePath, float fAreaRate, float fHeightWidthRate);

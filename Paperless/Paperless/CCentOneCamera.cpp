@@ -2,6 +2,9 @@
 #include "MyTTrace.h"
 #include "utils.h"
 #include "Paperless.h"
+#include "cv.h"
+#include <highgui.h>
+#include "opencv/OpencvUtils.h"
 
 
 CCentOneCamera::CCentOneCamera(CDialogEx *pDialogCamera)
@@ -11,7 +14,7 @@ CCentOneCamera::CCentOneCamera(CDialogEx *pDialogCamera)
 	mHighCamera = NULL;
 	pVideoWnd = new CStatic();
 	pVideoWnd->Create("升腾高拍仪器摄像头显示窗体", WS_CHILD, CRect(0, 0, 120, 120), pDialogCamera);
-	pVideoWnd->ShowWindow(SW_SHOW);
+	//pVideoWnd->ShowWindow(SW_SHOW);
 	mHighCamera = new CCentermIFImp(pVideoWnd);
 }
 
@@ -215,6 +218,22 @@ int CCentOneCamera::MySaveEnvPic(const char *pSaveEnvPicFilenm)
 	// 关闭设备
 	nRet = mHighCamera->CloseDevice();
 	GtWriteTrace(30, "%s:%d: 关闭设备返回值 CloseDevice() nRet = [%d]", __FUNCTION__, __LINE__, nRet);
+
+	// 裁剪中心区域
+	IplImage *pDestImg = GetCentreOfImage2(pSaveEnvPicFilenm, F_AREA_RATE, F_HEIGHT_WIDTH_RATE);
+	if (pDestImg == NULL)
+	{
+		// 裁剪失败，不处理
+		GtWriteTrace(30, "%s:%d: 裁剪人像中心区域失败！", __FUNCTION__, __LINE__);
+	}
+	else
+	{
+		GtWriteTrace(30, "%s:%d: 裁剪人像中心区域成功！", __FUNCTION__, __LINE__);
+		// 保存裁剪的图像
+		cvSaveImage(pSaveEnvPicFilenm, pDestImg);
+		// 释放
+		cvReleaseImage(&pDestImg);
+	}
 
 	return 0;
 }

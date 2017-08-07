@@ -1,5 +1,6 @@
 #include "OpencvUtils.h"
 #include "../MyTTrace.h"
+#include <math.h>
 
 
 /** 
@@ -198,7 +199,7 @@ int MyAutoCrop(IplImage *pImgSrc, IplImage **pImgDest)
 		// 第二次裁剪得到结果图像（ROI复制）
 		cvCopy(pRemoteImg, *pImgDest, NULL);
 		// 清空ROI
-		cvResetImageROI(pImgSrc);
+		cvResetImageROI(pRemoteImg);
 		// 释放旋转后的图像
 		if (pRemoteImg != NULL)
 		{
@@ -282,4 +283,118 @@ IplImage* rotateImage(IplImage* pImgSrc, float lDegree)
 	cvReleaseImage(&pImgTemp);
 
 	return pImgRotate;
+}
+
+
+// 四舍五入
+int round_double(float number)
+{
+	return (number > 0.0) ? (number + 0.5) : (number - 0.5); 
+}
+
+
+/** 
+* 功能：截取图像中心区域，按面积和宽高比例截取，图像从图片文件中获取
+* 参数：pFilePath：待旋转的原图像的路径
+*		fAreaRate：面积比例，大面积/小面积，比例需大于1
+*		fHeightWidthRate：高宽比，高/宽，比例需大于1
+* 返回值：截取后的图像，为NULL表示失败，不为空需要手动释放
+**/
+IplImage* GetCentreOfImage2(const char *pFilePath, float fAreaRate, float fHeightWidthRate)
+{
+	IplImage *pSrcImg = cvLoadImage(pFilePath, CV_LOAD_IMAGE_ANYDEPTH | CV_LOAD_IMAGE_ANYCOLOR);
+	if (pSrcImg == NULL)
+	{
+		return NULL;
+	}
+	IplImage *pDestImg = GetCentreOfImage1(pSrcImg, fAreaRate, fHeightWidthRate);
+	if (pDestImg == NULL)
+	{
+		cvReleaseImage(&pSrcImg);
+		return NULL;
+	}
+	return pDestImg;
+}
+
+
+/** 
+* 功能：截取图像中心区域，按面积和宽高比例截取，图像从image中获取
+* 参数：pImgSrc：待截取的原图像
+*		fAreaRate：面积比例，大面积/小面积，比例需大于1
+*		fHeightWidthRate：高宽比，高/宽，比例需大于1
+* 返回值：截取后的图像，为NULL表示失败，不为空需要手动释放
+**/
+IplImage* GetCentreOfImage1(IplImage* pImgSrc, float fAreaRate, float fHeightWidthRate)
+{
+	if (pImgSrc == NULL || fAreaRate <= 1 || fHeightWidthRate <= 1)
+	{
+		return NULL;
+	}
+
+	IplImage *pImgDest = NULL;
+	// 大图像面积
+	long dBigArea = 0;
+	// 小图像面积
+	double dLittleArea = 0;
+	// 小图像倍率
+	float fTimes = 0;
+	int nWidth = 0;
+	int nHeight = 0;
+	int nX = 0;
+	int nY = 0;
+
+	// 计算大面积
+	dBigArea = pImgSrc->height * pImgSrc->width;
+	// 计算小面积
+	dLittleArea = dBigArea / fAreaRate;
+	// 通过面积与宽高比计算倍率
+	fTimes = sqrt(dLittleArea / fHeightWidthRate);
+	nWidth = round_double(fTimes);
+	nHeight = round_double(fTimes * fHeightWidthRate);
+	GtWriteTrace(30, "%s:%d: 原图像宽=[%d], 高=[%d]，第一次计算的宽=[%d], 高=[%d]！", __FUNCTION__, __LINE__,
+		pImgSrc->width, pImgSrc->height, nWidth, nHeight);
+
+	// 判断高、宽是否超过原图像的高、宽，计算待截取的区域
+	if (nWidth > pImgSrc->width)
+	{
+		GtWriteTrace(30, "%s:%d: 计算的宽[%d] > 原图像宽=[%d]！", __FUNCTION__, __LINE__, nWidth,
+			pImgSrc->width);
+		// 宽值重置
+		nWidth = pImgSrc->width;
+		// 重新计算高
+		nHeight = round_double(nWidth * fHeightWidthRate);
+		nX = 0;
+		nY = (pImgSrc->height - nHeight) / 2;
+	}
+	else if (nHeight > pImgSrc->height )
+	{
+		GtWriteTrace(30, "%s:%d: 计算的高[%d] > 原图像高=[%d]！", __FUNCTION__, __LINE__, nHeight,
+			pImgSrc->height);
+		// 高值重置
+		nHeight = pImgSrc->height;
+		// 重新计算宽
+		nWidth = round_double(nHeight / fHeightWidthRate);
+		nX = (pImgSrc->width - nWidth) / 2;
+		nY = 0;
+	}
+	else
+	{
+		nX = (pImgSrc->width - nWidth) / 2;
+		nY = (pImgSrc->height - nHeight) / 2;
+	}
+	GtWriteTrace(30, "%s:%d: 计算的待截取区域的坐标(%d, %d)，宽=[%d], 高=[%d]！", __FUNCTION__, __LINE__,
+		nX, nY, pImgSrc->width, pImgSrc->height);
+
+	// 截取图像
+	pImgDest = cvCreateImage(cvSize(nWidth, nHeight), pImgSrc->depth, pImgSrc->nChannels);
+	// 截取图像的区域
+	CvRect cutRect = cvRect( nX, nY, nWidth, nHeight);
+	// 设置ROI
+	cvSetImageROI(pImgSrc, cutRect);
+	// 第二次裁剪得到结果图像（ROI复制）
+	cvCopy(pImgSrc, pImgDest, NULL);
+	// 清空ROI
+	cvResetImageROI(pImgSrc);
+
+	return pImgDest;
 }

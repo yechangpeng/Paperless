@@ -88,6 +88,8 @@ public:
 	SettingDlg *pSettingDlg;
 	// 网页浏览器窗口
 	CMyHtmlView *pMyHtmlView;
+	// 升腾高拍仪窗口
+	CDialogEx *pCentCameraDlg;
 	// 身份证识读器实体类，多态
 	CBaseReadIDCardInfo *pBaseReadIDCardInfo;
 	// 高拍仪摄像头实体类，多态

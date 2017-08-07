@@ -18,6 +18,7 @@ protected:
 	virtual int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
 	// 构造后第一次调用
 	virtual void OnInitialUpdate();
+	virtual void OnDestroy();
 
 public:
 	BOOL CreateFromStatic(CStatic* pStaticWnd, CWnd* pParent);

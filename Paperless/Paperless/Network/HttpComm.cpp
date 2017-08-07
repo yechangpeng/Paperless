@@ -397,12 +397,12 @@ int AnalyzeData()
 	fp = NULL;
 
 	GtWriteTrace(30, "[%s][%d]: fileBuffer [%s]", __FUNCTION__, __LINE__, fileBuffer);
-	char buffer[128] = {0};
-	sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
+	//char buffer[128] = {0};
+	//sprintf((char *)buffer, "{\"code\":\"0\", \"msg\":\"成功\", \"url\":\"http://www.baidu.com\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"1\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
 	//sprintf((char *)buffer, "{\"code\":\"2\", \"msg\":\"失败\", \"url\":\"\"}");//测试字符串
-	//string recvBuff = (char *)fileBuffer;
-	string recvBuff = (char *)buffer;
+	string recvBuff = (char *)fileBuffer;
+	//string recvBuff = (char *)buffer;
 	// 解析服务端返回的json类型数据，获取交易类型
 	//json解析
 	Json::Reader reader;

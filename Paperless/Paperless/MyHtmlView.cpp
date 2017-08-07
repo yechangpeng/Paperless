@@ -53,6 +53,16 @@ int CMyHtmlView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
 }
 
 
+void CMyHtmlView::OnDestroy()
+{     
+	if (m_pBrowserApp)
+	{
+		m_pBrowserApp.Release();
+	}
+	CWnd::OnDestroy(); // ÅÔÂ· CView ÎÄµµ/¿ò¼Ü
+}
+
+
 void CMyHtmlView::DoDataExchange(CDataExchange* pDX)
 {
 	CHtmlView::DoDataExchange(pDX);
